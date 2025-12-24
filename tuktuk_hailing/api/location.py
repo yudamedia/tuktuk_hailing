@@ -82,7 +82,7 @@ def get_available_drivers(customer_lat=None, customer_lng=None, max_distance_km=
     
     # Query available drivers with recent location updates
     drivers = frappe.db.sql("""
-        SELECT 
+        SELECT
             dl.driver,
             dl.vehicle,
             dl.latitude,
@@ -91,11 +91,11 @@ def get_available_drivers(customer_lat=None, customer_lng=None, max_distance_km=
             dl.speed_kmh,
             dl.timestamp,
             d.driver_name,
-            d.phone_number,
+            d.mpesa_number,
             d.photo
         FROM `tabDriver Location` dl
         INNER JOIN `tabTukTuk Driver` d ON dl.driver = d.name
-        WHERE 
+        WHERE
             dl.hailing_status = 'Available'
             AND dl.timestamp >= %s
             AND dl.is_stale = 0

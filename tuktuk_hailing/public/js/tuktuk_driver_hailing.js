@@ -10,12 +10,14 @@ frappe.ui.form.on('TukTuk Driver', {
 });
 
 function add_hailing_dashboard(frm) {
-    // Add hailing dashboard section
-    frm.dashboard.add_section(
-        frappe.render_template('hailing_dashboard', {driver_id: frm.doc.name}),
-        __("Ride Hailing")
+    // Render hailing dashboard into HTML field on Hailing tab
+    const html_field = frm.fields_dict.hailing_dashboard_html;
+    if (!html_field || !html_field.$wrapper) return;
+
+    html_field.$wrapper.html(
+        frappe.render_template('hailing_dashboard', {driver_id: frm.doc.name})
     );
-    
+
     // Initialize map and controls
     setTimeout(() => {
         initHailingMap(frm);

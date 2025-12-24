@@ -28,3 +28,7 @@ scheduler_events = {
         ]
     }
 }
+
+fixtures = [
+    {"dt": "Workspace", "filters": [["name", "=", "Tuktuk Hailing"]]}
+]

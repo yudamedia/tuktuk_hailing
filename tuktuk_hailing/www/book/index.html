@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Sunny Tuktuk</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .booking-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        #map {
+            width: 100%;
+            height: 400px;
+        }
+        
+        .booking-form {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #f39c12;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .fare-estimate {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .fare-estimate h3 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .fare-amount {
+            font-size: 2em;
+            color: #f39c12;
+            font-weight: bold;
+        }
+        
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-accepted {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .driver-info {
+            background: white;
+            border: 2px solid #f39c12;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .driver-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌞 Sunny Tuktuk</h1>
+            <p>Solar-Powered Rides in Diani Beach</p>
+        </header>
+        
+        <div class="booking-card">
+            <div id="map"></div>
+            
+            <div class="booking-form">
+                <div id="error-message" class="error hidden"></div>
+                
+                <div id="booking-section">
+                    <div class="form-group">
+                        <label for="phone">Your WhatsApp Number</label>
+                        <input type="tel" id="phone" placeholder="+254712345678" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="name">Your Name (optional)</label>
+                        <input type="text" id="name" placeholder="John Doe">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pickup">Pickup Location</label>
+                        <input type="text" id="pickup" placeholder="Click map or type address" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="destination">Destination</label>
+                        <input type="text" id="destination" placeholder="Click map or type address" required>
+                    </div>
+                    
+                    <div id="fare-estimate" class="fare-estimate hidden">
+                        <h3>Estimated Fare</h3>
+                        <div class="fare-amount">KSH <span id="fare-amount">0</span></div>
+                        <small id="distance-info"></small>
+                    </div>
+                    
+                    <button class="btn" id="request-btn" onclick="requestRide()">Request Sunny Tuktuk</button>
+                </div>
+                
+                <div id="waiting-section" class="hidden">
+                    <div class="status-message status-pending">
+                        <h3>🔍 Finding your driver...</h3>
+                        <p>Please wait while we connect you with an available Sunny Tuktuk</p>
+                    </div>
+                </div>
+                
+                <div id="accepted-section" class="hidden">
+                    <div class="status-message status-accepted">
+                        <h3>✅ Driver Found!</h3>
+                    </div>
+                    
+                    <div class="driver-info">
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <img id="driver-photo" class="driver-photo" src="/assets/frappe/images/default-avatar.png" alt="Driver">
+                            <div>
+                                <h3 id="driver-name">Driver Name</h3>
+                                <p>Tuktuk ID: <strong id="vehicle-id"></strong></p>
+                                <p>Phone: <strong id="driver-phone"></strong></p>
+                            </div>
+                        </div>
+                        <button class="btn" onclick="openWhatsApp()" style="margin-top: 15px;">
+                            💬 Chat on WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let map, pickupMarker, destinationMarker;
+        let pickupCoords = null, destCoords = null;
+        let currentRequestId = null;
+        let currentDriverPhone = null;
+        let settingMode = null; // 'pickup' or 'destination'
+        
+        // Initialize map
+        function initMap() {
+            // Default center: Diani Beach
+            map = L.map('map').setView([-4.2833, 39.5667], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Try to get user's location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    map.setView([lat, lng], 15);
+                    
+                    // Set as pickup location
+                    pickupCoords = {lat, lng};
+                    pickupMarker = L.marker([lat, lng], {
+                        icon: L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41]
+                        })
+                    }).addTo(map).bindPopup('Pickup').openPopup();
+                    
+                    document.getElementById('pickup').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                });
+            }
+            
+            // Click map to set locations
+            map.on('click', function(e) {
+                if (!pickupCoords) {
+                    setPickup(e.latlng.lat, e.latlng.lng);
+                } else if (!destCoords) {
+                    setDestination(e.latlng.lat, e.latlng.lng);
+                }
+            });
+            
+            // Load available drivers
+            loadAvailableDrivers();
+        }
+        
+        function setPickup(lat, lng) {
+            pickupCoords = {lat, lng};
+            if (pickupMarker) map.removeLayer(pickupMarker);
+            
+            pickupMarker = L.marker([lat, lng], {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                })
+            }).addTo(map).bindPopup('Pickup').openPopup();
+            
+            document.getElementById('pickup').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            calculateFare();
+        }
+        
+        function setDestination(lat, lng) {
+            destCoords = {lat, lng};
+            if (destinationMarker) map.removeLayer(destinationMarker);
+            
+            destinationMarker = L.marker([lat, lng], {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                })
+            }).addTo(map).bindPopup('Destination').openPopup();
+            
+            document.getElementById('destination').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            calculateFare();
+        }
+        
+        function calculateFare() {
+            if (!pickupCoords || !destCoords) return;
+            
+            // Simple distance calculation (Haversine)
+            const R = 6371; // km
+            const dLat = (destCoords.lat - pickupCoords.lat) * Math.PI / 180;
+            const dLon = (destCoords.lng - pickupCoords.lng) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                     Math.cos(pickupCoords.lat * Math.PI / 180) * Math.cos(destCoords.lat * Math.PI / 180) *
+                     Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c;
+            
+            // Estimate fare (base + per km)
+            const baseFare = 50;
+            const perKm = 40;
+            const estimatedFare = Math.max(100, baseFare + (distance * perKm));
+            
+            document.getElementById('fare-amount').textContent = Math.round(estimatedFare);
+            document.getElementById('distance-info').textContent = `Distance: ${distance.toFixed(2)} km`;
+            document.getElementById('fare-estimate').classList.remove('hidden');
+        }
+        
+        function loadAvailableDrivers() {
+            // This would call the API to get available drivers
+            // For now, just a placeholder
+        }
+        
+        async function requestRide() {
+            const phone = document.getElementById('phone').value;
+            const name = document.getElementById('name').value;
+            const pickup = document.getElementById('pickup').value;
+            const destination = document.getElementById('destination').value;
+            
+            if (!phone || !pickup || !destination) {
+                showError('Please fill in all required fields');
+                return;
+            }
+            
+            if (!pickupCoords || !destCoords) {
+                showError('Please select both pickup and destination on the map');
+                return;
+            }
+            
+            // Make API call
+            try {
+                const response = await frappe.call({
+                    method: 'tuktuk_hailing.api.rides.create_ride_request_public',
+                    args: {
+                        customer_phone: phone,
+                        customer_name: name,
+                        pickup_address: pickup,
+                        pickup_lat: pickupCoords.lat,
+                        pickup_lng: pickupCoords.lng,
+                        destination_address: destination,
+                        dest_lat: destCoords.lat,
+                        dest_lng: destCoords.lng
+                    }
+                });
+                
+                if (response.message.success) {
+                    currentRequestId = response.message.request_id;
+                    showWaitingScreen();
+                    pollRideStatus();
+                } else {
+                    showError(response.message.error || 'Failed to create ride request');
+                }
+            } catch (error) {
+                showError('Error creating ride request. Please try again.');
+            }
+        }
+        
+        function showWaitingScreen() {
+            document.getElementById('booking-section').classList.add('hidden');
+            document.getElementById('waiting-section').classList.remove('hidden');
+        }
+        
+        function showDriverInfo(data) {
+            document.getElementById('waiting-section').classList.add('hidden');
+            document.getElementById('accepted-section').classList.remove('hidden');
+            
+            document.getElementById('driver-name').textContent = data.driver_name || 'Driver';
+            document.getElementById('vehicle-id').textContent = data.vehicle_id || 'N/A';
+            document.getElementById('driver-phone').textContent = data.driver_phone || 'N/A';
+            currentDriverPhone = data.driver_phone;
+            
+            if (data.driver_photo) {
+                document.getElementById('driver-photo').src = data.driver_photo;
+            }
+        }
+        
+        function openWhatsApp() {
+            if (currentDriverPhone) {
+                const message = encodeURIComponent('Hello! I\'m your Sunny Tuktuk customer.');
+                window.open(`https://wa.me/${currentDriverPhone}?text=${message}`, '_blank');
+            }
+        }
+        
+        async function pollRideStatus() {
+            if (!currentRequestId) return;
+            
+            try {
+                const response = await frappe.call({
+                    method: 'tuktuk_hailing.api.rides.get_ride_status',
+                    args: {
+                        request_id: currentRequestId,
+                        customer_phone: document.getElementById('phone').value
+                    }
+                });
+                
+                if (response.message.success) {
+                    const status = response.message.status;
+                    
+                    if (status === 'Accepted' || status === 'En Route') {
+                        showDriverInfo(response.message);
+                        return; // Stop polling
+                    } else if (status === 'Pending') {
+                        // Continue polling
+                        setTimeout(pollRideStatus, 3000);
+                    } else if (status === 'Expired' || status === 'Cancelled') {
+                        showError('Ride request ' + status.toLowerCase() + '. Please try again.');
+                        setTimeout(() => location.reload(), 3000);
+                    }
+                }
+            } catch (error) {
+                console.error('Poll error:', error);
+                setTimeout(pollRideStatus, 5000);
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initMap);
+    </script>
+</body>
+</html>

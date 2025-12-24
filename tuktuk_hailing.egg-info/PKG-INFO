@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: tuktuk_hailing
+Version: 0.0.1
+Summary: Ride hailing system for Sunny Tuktuk
+Author: Sunny Tuktuk
+Author-email: info@sunnytuktuk.com
+Requires-Dist: frappe
+Dynamic: author
+Dynamic: author-email
+Dynamic: requires-dist
+Dynamic: summary

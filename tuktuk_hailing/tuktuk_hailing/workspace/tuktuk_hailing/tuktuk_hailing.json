@@ -1,0 +1,21 @@
+{
+  "doctype": "Workspace",
+  "name": "Tuktuk Hailing",
+  "title": "Tuktuk Hailing",
+  "label": "Tuktuk Hailing",
+  "icon": "truck",
+  "parent_page": "",
+  "public": 1,
+  "sequence_id": 1,
+  "content": "[{\"id\":\"header_title\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">🚕 Tuktuk Hailing Dashboard</span>\",\"col\":12}}]",
+  "charts": [],
+  "shortcuts": [],
+  "number_cards": [],
+  "links": [],
+  "quick_lists": [],
+  "custom_blocks": [],
+  "roles": [
+    { "role": "System Manager" },
+    { "role": "Tuktuk Manager" }
+  ]
+}

@@ -1,0 +1,214 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:RT-{#####}",
+ "creation": "2024-12-18 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ride_request",
+  "section_break_1",
+  "driver",
+  "vehicle",
+  "column_break_1",
+  "customer_phone",
+  "customer_name",
+  "trip_details_section",
+  "pickup_address",
+  "destination_address",
+  "column_break_2",
+  "started_at",
+  "completed_at",
+  "duration_minutes",
+  "fare_section",
+  "distance_traveled_km",
+  "fare_charged",
+  "column_break_3",
+  "payment_status",
+  "mpesa_transaction_id",
+  "rating_section",
+  "customer_rating",
+  "customer_rating_comment",
+  "column_break_4",
+  "rated_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "ride_request",
+   "fieldtype": "Link",
+   "label": "Ride Request",
+   "options": "Ride Request",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "driver",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Driver",
+   "options": "TukTuk Driver",
+   "reqd": 1
+  },
+  {
+   "fieldname": "vehicle",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Vehicle",
+   "options": "TukTuk Vehicle",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer_phone",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Customer Phone",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "trip_details_section",
+   "fieldtype": "Section Break",
+   "label": "Trip Details"
+  },
+  {
+   "fieldname": "pickup_address",
+   "fieldtype": "Small Text",
+   "label": "Pickup Address"
+  },
+  {
+   "fieldname": "destination_address",
+   "fieldtype": "Small Text",
+   "label": "Destination Address"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "started_at",
+   "fieldtype": "Datetime",
+   "label": "Started At",
+   "reqd": 1
+  },
+  {
+   "fieldname": "completed_at",
+   "fieldtype": "Datetime",
+   "label": "Completed At",
+   "reqd": 1
+  },
+  {
+   "fieldname": "duration_minutes",
+   "fieldtype": "Int",
+   "label": "Duration (Minutes)"
+  },
+  {
+   "fieldname": "fare_section",
+   "fieldtype": "Section Break",
+   "label": "Fare & Payment"
+  },
+  {
+   "fieldname": "distance_traveled_km",
+   "fieldtype": "Float",
+   "label": "Distance Traveled (KM)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "fare_charged",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Fare Charged (KSH)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "payment_status",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Payment Status",
+   "options": "Pending\nPaid\nFailed",
+   "reqd": 1
+  },
+  {
+   "fieldname": "mpesa_transaction_id",
+   "fieldtype": "Data",
+   "label": "M-Pesa Transaction ID"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "rating_section",
+   "fieldtype": "Section Break",
+   "label": "Customer Rating"
+  },
+  {
+   "fieldname": "customer_rating",
+   "fieldtype": "Rating",
+   "label": "Customer Rating"
+  },
+  {
+   "fieldname": "customer_rating_comment",
+   "fieldtype": "Small Text",
+   "label": "Customer Comment"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rated_at",
+   "fieldtype": "Datetime",
+   "label": "Rated At"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-12-18 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Tuktuk Hailing",
+ "name": "Ride Trip",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driver",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

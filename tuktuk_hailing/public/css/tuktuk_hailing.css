@@ -1,0 +1,111 @@
+/* Tuktuk Hailing Styles */
+
+.leaflet-container {
+    font-family: inherit;
+}
+
+.hailing-map-container {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+
+/* Ride request cards */
+.ride-request-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.ride-request-item {
+    background: #fff;
+    border: 1px solid #d1d8dd;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.ride-request-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.ride-request-item.accepted {
+    background: #d1ecf1;
+    border-color: #bee5eb;
+}
+
+/* Driver location markers */
+.driver-location-marker {
+    background: #28a745;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    border: 3px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.driver-location-marker.busy {
+    background: #dc3545;
+}
+
+.driver-location-marker.enroute {
+    background: #ffc107;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge.available {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.busy {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-badge.offline {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+/* Booking form */
+.booking-form-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.fare-display {
+    background: #f8f9fa;
+    border-left: 4px solid #f39c12;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.fare-amount {
+    font-size: 24px;
+    font-weight: bold;
+    color: #f39c12;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .hailing-dashboard .row {
+        flex-direction: column;
+    }
+    
+    #hailing-map {
+        height: 300px !important;
+        margin-bottom: 15px;
+    }
+}

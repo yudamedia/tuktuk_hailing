@@ -1,0 +1,305 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-12-18 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "service_area_section",
+  "service_area_name",
+  "service_area_coordinates",
+  "column_break_1",
+  "service_area_map",
+  "fare_settings_section",
+  "base_fare",
+  "per_km_rate",
+  "column_break_2",
+  "minimum_fare",
+  "surge_pricing_enabled",
+  "location_tracking_section",
+  "location_update_interval_available",
+  "location_update_interval_enroute",
+  "column_break_3",
+  "stale_location_threshold",
+  "show_driver_radius_meters",
+  "ride_request_section",
+  "request_timeout_seconds",
+  "max_active_requests_per_customer",
+  "column_break_4",
+  "cancellation_free_period_seconds",
+  "cancellation_fee",
+  "rating_section",
+  "enable_customer_ratings",
+  "minimum_rating_threshold",
+  "column_break_5",
+  "low_rating_warning_count",
+  "whatsapp_section",
+  "whatsapp_business_api_enabled",
+  "whatsapp_api_token",
+  "column_break_6",
+  "whatsapp_phone_number",
+  "map_settings_section",
+  "osm_tile_server",
+  "routing_api_url",
+  "column_break_7",
+  "routing_api_provider"
+ ],
+ "fields": [
+  {
+   "fieldname": "service_area_section",
+   "fieldtype": "Section Break",
+   "label": "Service Area"
+  },
+  {
+   "fieldname": "service_area_name",
+   "fieldtype": "Data",
+   "label": "Service Area Name",
+   "reqd": 1,
+   "default": "Diani Beach Area"
+  },
+  {
+   "description": "GeoJSON polygon coordinates defining the service area. Example: [[[lng1,lat1],[lng2,lat2],[lng3,lat3],[lng1,lat1]]]",
+   "fieldname": "service_area_coordinates",
+   "fieldtype": "Long Text",
+   "label": "Service Area Coordinates (GeoJSON)"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "service_area_map",
+   "fieldtype": "HTML",
+   "label": "Service Area Map Preview"
+  },
+  {
+   "fieldname": "fare_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Fare Settings"
+  },
+  {
+   "default": "50",
+   "fieldname": "base_fare",
+   "fieldtype": "Currency",
+   "label": "Base Fare (KSH)",
+   "reqd": 1
+  },
+  {
+   "default": "40",
+   "fieldname": "per_km_rate",
+   "fieldtype": "Currency",
+   "label": "Per KM Rate (KSH)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "100",
+   "fieldname": "minimum_fare",
+   "fieldtype": "Currency",
+   "label": "Minimum Fare (KSH)",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "surge_pricing_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Surge Pricing"
+  },
+  {
+   "fieldname": "location_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Location Tracking"
+  },
+  {
+   "default": "10",
+   "description": "Seconds between location updates when driver is available",
+   "fieldname": "location_update_interval_available",
+   "fieldtype": "Int",
+   "label": "Update Interval - Available (seconds)",
+   "reqd": 1
+  },
+  {
+   "default": "5",
+   "description": "Seconds between location updates when driver is en-route to pickup",
+   "fieldname": "location_update_interval_enroute",
+   "fieldtype": "Int",
+   "label": "Update Interval - En Route (seconds)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "60",
+   "description": "Seconds before a location is considered stale",
+   "fieldname": "stale_location_threshold",
+   "fieldtype": "Int",
+   "label": "Stale Location Threshold (seconds)",
+   "reqd": 1
+  },
+  {
+   "default": "50",
+   "description": "Approximate radius in meters to show driver location (for privacy)",
+   "fieldname": "show_driver_radius_meters",
+   "fieldtype": "Int",
+   "label": "Driver Location Display Radius (meters)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "ride_request_section",
+   "fieldtype": "Section Break",
+   "label": "Ride Request Settings"
+  },
+  {
+   "default": "30",
+   "description": "Seconds before a ride request expires",
+   "fieldname": "request_timeout_seconds",
+   "fieldtype": "Int",
+   "label": "Request Timeout (seconds)",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "description": "Maximum number of simultaneous active requests per customer phone number",
+   "fieldname": "max_active_requests_per_customer",
+   "fieldtype": "Int",
+   "label": "Max Active Requests Per Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "60",
+   "description": "Seconds after acceptance when cancellation is free",
+   "fieldname": "cancellation_free_period_seconds",
+   "fieldtype": "Int",
+   "label": "Free Cancellation Period (seconds)",
+   "reqd": 1
+  },
+  {
+   "default": "50",
+   "fieldname": "cancellation_fee",
+   "fieldtype": "Currency",
+   "label": "Cancellation Fee (KSH)"
+  },
+  {
+   "fieldname": "rating_section",
+   "fieldtype": "Section Break",
+   "label": "Customer Rating Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_customer_ratings",
+   "fieldtype": "Check",
+   "label": "Enable Customer Ratings"
+  },
+  {
+   "default": "3.5",
+   "description": "Minimum average rating before warning driver",
+   "fieldname": "minimum_rating_threshold",
+   "fieldtype": "Float",
+   "label": "Minimum Rating Threshold"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "3",
+   "description": "Number of low ratings before formal warning",
+   "fieldname": "low_rating_warning_count",
+   "fieldtype": "Int",
+   "label": "Low Rating Warning Count"
+  },
+  {
+   "fieldname": "whatsapp_section",
+   "fieldtype": "Section Break",
+   "label": "WhatsApp Integration"
+  },
+  {
+   "default": "0",
+   "fieldname": "whatsapp_business_api_enabled",
+   "fieldtype": "Check",
+   "label": "Enable WhatsApp Business API"
+  },
+  {
+   "depends_on": "eval:doc.whatsapp_business_api_enabled",
+   "fieldname": "whatsapp_api_token",
+   "fieldtype": "Data",
+   "label": "WhatsApp API Token"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.whatsapp_business_api_enabled",
+   "fieldname": "whatsapp_phone_number",
+   "fieldtype": "Data",
+   "label": "WhatsApp Business Number"
+  },
+  {
+   "fieldname": "map_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Map Settings"
+  },
+  {
+   "default": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+   "fieldname": "osm_tile_server",
+   "fieldtype": "Data",
+   "label": "OpenStreetMap Tile Server URL",
+   "reqd": 1
+  },
+  {
+   "default": "https://router.project-osrm.org/route/v1/driving/",
+   "description": "URL for routing API (OSRM format)",
+   "fieldname": "routing_api_url",
+   "fieldtype": "Data",
+   "label": "Routing API URL",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "OSRM",
+   "fieldname": "routing_api_provider",
+   "fieldtype": "Select",
+   "label": "Routing API Provider",
+   "options": "OSRM\nMapbox\nGraphHopper",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-12-18 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Tuktuk Hailing",
+ "name": "Hailing Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

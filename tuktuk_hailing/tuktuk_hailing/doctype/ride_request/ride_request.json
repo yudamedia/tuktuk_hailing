@@ -1,0 +1,282 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:RR-{#####}",
+ "creation": "2024-12-18 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "customer_details_section",
+  "customer_phone",
+  "customer_name",
+  "column_break_1",
+  "customer_latitude",
+  "customer_longitude",
+  "ride_details_section",
+  "pickup_address",
+  "pickup_latitude",
+  "pickup_longitude",
+  "column_break_2",
+  "destination_address",
+  "destination_latitude",
+  "destination_longitude",
+  "fare_section",
+  "estimated_distance_km",
+  "estimated_fare",
+  "column_break_3",
+  "actual_fare",
+  "request_status_section",
+  "status",
+  "requested_at",
+  "column_break_4",
+  "expires_at",
+  "driver_details_section",
+  "accepted_by_driver",
+  "accepted_by_vehicle",
+  "column_break_5",
+  "accepted_at",
+  "cancelled_section",
+  "cancelled_by",
+  "cancellation_reason",
+  "column_break_6",
+  "cancelled_at",
+  "cancellation_fee_charged"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer_details_section",
+   "fieldtype": "Section Break",
+   "label": "Customer Details"
+  },
+  {
+   "fieldname": "customer_phone",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Customer Phone",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer_latitude",
+   "fieldtype": "Float",
+   "label": "Customer Latitude",
+   "precision": "8"
+  },
+  {
+   "fieldname": "customer_longitude",
+   "fieldtype": "Float",
+   "label": "Customer Longitude",
+   "precision": "8"
+  },
+  {
+   "fieldname": "ride_details_section",
+   "fieldtype": "Section Break",
+   "label": "Ride Details"
+  },
+  {
+   "fieldname": "pickup_address",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Pickup Address",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pickup_latitude",
+   "fieldtype": "Float",
+   "label": "Pickup Latitude",
+   "precision": "8",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pickup_longitude",
+   "fieldtype": "Float",
+   "label": "Pickup Longitude",
+   "precision": "8",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "destination_address",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Destination Address",
+   "reqd": 1
+  },
+  {
+   "fieldname": "destination_latitude",
+   "fieldtype": "Float",
+   "label": "Destination Latitude",
+   "precision": "8",
+   "reqd": 1
+  },
+  {
+   "fieldname": "destination_longitude",
+   "fieldtype": "Float",
+   "label": "Destination Longitude",
+   "precision": "8",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fare_section",
+   "fieldtype": "Section Break",
+   "label": "Fare"
+  },
+  {
+   "fieldname": "estimated_distance_km",
+   "fieldtype": "Float",
+   "label": "Estimated Distance (KM)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "estimated_fare",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Estimated Fare (KSH)"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "actual_fare",
+   "fieldtype": "Currency",
+   "label": "Actual Fare (KSH)"
+  },
+  {
+   "fieldname": "request_status_section",
+   "fieldtype": "Section Break",
+   "label": "Request Status"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Pending\nAccepted\nEn Route\nCompleted\nCancelled\nExpired",
+   "reqd": 1
+  },
+  {
+   "fieldname": "requested_at",
+   "fieldtype": "Datetime",
+   "label": "Requested At",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "expires_at",
+   "fieldtype": "Datetime",
+   "label": "Expires At"
+  },
+  {
+   "fieldname": "driver_details_section",
+   "fieldtype": "Section Break",
+   "label": "Driver Details"
+  },
+  {
+   "fieldname": "accepted_by_driver",
+   "fieldtype": "Link",
+   "label": "Accepted By Driver",
+   "options": "TukTuk Driver"
+  },
+  {
+   "fieldname": "accepted_by_vehicle",
+   "fieldtype": "Link",
+   "label": "Accepted By Vehicle",
+   "options": "TukTuk Vehicle"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "accepted_at",
+   "fieldtype": "Datetime",
+   "label": "Accepted At"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.status=='Cancelled'",
+   "fieldname": "cancelled_section",
+   "fieldtype": "Section Break",
+   "label": "Cancellation Details"
+  },
+  {
+   "fieldname": "cancelled_by",
+   "fieldtype": "Select",
+   "label": "Cancelled By",
+   "options": "\nCustomer\nDriver\nSystem"
+  },
+  {
+   "fieldname": "cancellation_reason",
+   "fieldtype": "Small Text",
+   "label": "Cancellation Reason"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cancelled_at",
+   "fieldtype": "Datetime",
+   "label": "Cancelled At"
+  },
+  {
+   "default": "0",
+   "fieldname": "cancellation_fee_charged",
+   "fieldtype": "Currency",
+   "label": "Cancellation Fee Charged (KSH)"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-12-18 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Tuktuk Hailing",
+ "name": "Ride Request",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driver",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -1,0 +1,175 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:DL-{driver}-{#####}",
+ "creation": "2024-12-18 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "driver",
+  "vehicle",
+  "column_break_1",
+  "hailing_status",
+  "location_section",
+  "latitude",
+  "longitude",
+  "column_break_2",
+  "accuracy_meters",
+  "heading",
+  "speed_kmh",
+  "timestamp_section",
+  "timestamp",
+  "column_break_3",
+  "is_stale",
+  "ride_section",
+  "current_ride_request"
+ ],
+ "fields": [
+  {
+   "fieldname": "driver",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Driver",
+   "options": "TukTuk Driver",
+   "reqd": 1
+  },
+  {
+   "fieldname": "vehicle",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Vehicle",
+   "options": "TukTuk Vehicle"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Offline",
+   "fieldname": "hailing_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Hailing Status",
+   "options": "Offline\nAvailable\nEn Route\nBusy",
+   "reqd": 1
+  },
+  {
+   "fieldname": "location_section",
+   "fieldtype": "Section Break",
+   "label": "Location"
+  },
+  {
+   "fieldname": "latitude",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Latitude",
+   "precision": "8",
+   "reqd": 1
+  },
+  {
+   "fieldname": "longitude",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Longitude",
+   "precision": "8",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "GPS accuracy in meters",
+   "fieldname": "accuracy_meters",
+   "fieldtype": "Float",
+   "label": "Accuracy (meters)",
+   "precision": "2"
+  },
+  {
+   "description": "Direction in degrees (0-360)",
+   "fieldname": "heading",
+   "fieldtype": "Float",
+   "label": "Heading (degrees)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "speed_kmh",
+   "fieldtype": "Float",
+   "label": "Speed (km/h)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "timestamp_section",
+   "fieldtype": "Section Break",
+   "label": "Timestamp"
+  },
+  {
+   "fieldname": "timestamp",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Timestamp",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_stale",
+   "fieldtype": "Check",
+   "label": "Is Stale"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "ride_section",
+   "fieldtype": "Section Break",
+   "label": "Current Ride"
+  },
+  {
+   "fieldname": "current_ride_request",
+   "fieldtype": "Link",
+   "label": "Current Ride Request",
+   "options": "Ride Request"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-12-18 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Tuktuk Hailing",
+ "name": "Driver Location",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driver",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

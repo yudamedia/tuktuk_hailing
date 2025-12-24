@@ -1,21 +1,41 @@
 {
-  "doctype": "Workspace",
-  "name": "Tuktuk Hailing",
-  "title": "Tuktuk Hailing",
-  "label": "Tuktuk Hailing",
-  "icon": "truck",
-  "parent_page": "",
-  "public": 1,
-  "sequence_id": 1,
-  "content": "[{\"id\":\"header_title\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">🚕 Tuktuk Hailing Dashboard</span>\",\"col\":12}}]",
-  "charts": [],
-  "shortcuts": [],
-  "number_cards": [],
-  "links": [],
-  "quick_lists": [],
-  "custom_blocks": [],
-  "roles": [
-    { "role": "System Manager" },
-    { "role": "Tuktuk Manager" }
-  ]
+ "charts": [],
+ "content": "[{\"id\":\"header_title\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">\ud83d\ude95 Hailing Dashboard</span>\",\"col\":12}},{\"id\":\"G5R7htPkqD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Fleet Location Map\",\"col\":12}}]",
+ "creation": "2025-12-24 17:08:02.520727",
+ "custom_blocks": [
+  {
+   "custom_block_name": "Fleet Location Map",
+   "label": "Fleet Location Map"
+  }
+ ],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "customization",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Tuktuk Hailing",
+ "links": [],
+ "modified": "2025-12-24 19:04:28.221149",
+ "modified_by": "Administrator",
+ "module": "Tuktuk Hailing",
+ "name": "Tuktuk Hailing",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Tuktuk Manager"
+  }
+ ],
+ "sequence_id": 4.0,
+ "shortcuts": [],
+ "title": "Tuktuk Hailing"
 }

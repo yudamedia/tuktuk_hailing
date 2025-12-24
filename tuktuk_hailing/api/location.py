@@ -92,7 +92,7 @@ def get_available_drivers(customer_lat=None, customer_lng=None, max_distance_km=
             dl.timestamp,
             d.driver_name,
             d.mpesa_number,
-            d.photo
+            d.driver_photo
         FROM `tabDriver Location` dl
         INNER JOIN `tabTukTuk Driver` d ON dl.driver = d.name
         WHERE

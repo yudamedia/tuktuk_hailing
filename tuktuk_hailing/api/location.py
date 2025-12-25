@@ -12,6 +12,26 @@ def update_driver_location(driver_id, latitude, longitude, accuracy=None, headin
     Called every N seconds by driver's phone
     """
     
+    # Convert numeric parameters to proper types (they come as strings from API)
+    latitude = float(latitude)
+    longitude = float(longitude)
+    
+    # Handle optional parameters that might be None or empty strings
+    if accuracy is not None and accuracy != '':
+        accuracy = float(accuracy)
+    else:
+        accuracy = None
+        
+    if heading is not None and heading != '':
+        heading = float(heading)
+    else:
+        heading = None
+        
+    if speed is not None and speed != '':
+        speed = float(speed)
+    else:
+        speed = None
+    
     # Get or create latest location record for driver
     existing = frappe.db.get_value("Driver Location",
         filters={"driver": driver_id},
@@ -106,10 +126,15 @@ def get_available_drivers(customer_lat=None, customer_lng=None, max_distance_km=
     if customer_lat and customer_lng and max_distance_km:
         import math
         
+        # Convert parameters to correct types (they come as strings from API)
+        customer_lat = float(customer_lat)
+        customer_lng = float(customer_lng)
+        max_distance_km = float(max_distance_km)
+        
         filtered_drivers = []
         for driver in drivers:
             distance = calculate_distance(
-                float(customer_lat), float(customer_lng),
+                customer_lat, customer_lng,
                 driver.latitude, driver.longitude
             )
             
@@ -138,6 +163,12 @@ def set_driver_availability(driver_id, available=True):
     available=True: Set to "Available"
     available=False: Set to "Offline"
     """
+    
+    # Convert available to boolean (it comes as string/int from API)
+    if isinstance(available, str):
+        available = available.lower() in ['true', '1', 'yes']
+    else:
+        available = bool(int(available)) if available not in [True, False] else available
     
     # Update driver's hailing status in TukTuk Driver doctype
     driver = frappe.get_doc("TukTuk Driver", driver_id)
@@ -245,6 +276,10 @@ def get_driver_route_to_customer(driver_id, customer_lat, customer_lng):
     Get routing information from driver's current location to customer
     Uses configured routing API (OSRM, MapBox, etc.)
     """
+    
+    # Convert coordinates to float (they come as strings from API)
+    customer_lat = float(customer_lat)
+    customer_lng = float(customer_lng)
     
     # Get driver's current location
     driver_location = get_driver_location(driver_id)

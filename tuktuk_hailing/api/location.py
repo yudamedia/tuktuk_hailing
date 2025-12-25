@@ -199,29 +199,122 @@ def set_driver_availability(driver_id, available=True):
     }
 
 @frappe.whitelist()
+def get_all_driver_locations():
+    """
+    Get all driver locations with their current status (not filtered by availability)
+    Used by Fleet Location Map to show all drivers regardless of status
+
+    Returns:
+    - drivers_with_locations: Drivers with recent GPS updates (shown on map)
+    - all_driver_counts: Status counts for ALL drivers with assigned tuktuks
+    """
+
+    settings = frappe.get_single("Hailing Settings")
+    stale_threshold = settings.stale_location_threshold or 60
+
+    # Get cutoff time for stale locations
+    cutoff_time = add_to_date(now(), seconds=-stale_threshold)
+
+    # Query drivers with recent location updates (these will be shown on the map)
+    drivers_with_locations = frappe.db.sql("""
+        SELECT
+            dl.driver,
+            dl.vehicle,
+            dl.latitude,
+            dl.longitude,
+            dl.heading,
+            dl.speed_kmh,
+            dl.hailing_status,
+            dl.timestamp,
+            d.driver_name,
+            d.mpesa_number,
+            d.driver_photo
+        FROM `tabDriver Location` dl
+        INNER JOIN `tabTukTuk Driver` d ON dl.driver = d.name
+        WHERE
+            dl.timestamp >= %s
+            AND dl.is_stale = 0
+        ORDER BY dl.timestamp DESC
+    """, (cutoff_time,), as_dict=True)
+
+    # Apply privacy radius to drivers with locations
+    for driver in drivers_with_locations:
+        driver['display_latitude'] = driver.latitude + 0.0005
+        driver['display_longitude'] = driver.longitude + 0.0005
+
+    # Get ALL drivers with assigned tuktuks and their status for accurate counts
+    all_drivers = frappe.db.sql("""
+        SELECT
+            d.name as driver,
+            d.hailing_status,
+            dl.timestamp
+        FROM `tabTukTuk Driver` d
+        LEFT JOIN `tabDriver Location` dl ON dl.driver = d.name
+        WHERE
+            d.assigned_tuktuk IS NOT NULL
+            AND d.assigned_tuktuk != ''
+        ORDER BY dl.timestamp DESC
+    """, as_dict=True)
+
+    # Count drivers by status
+    # For drivers without recent location updates, use their hailing_status from TukTuk Driver doctype
+    # For drivers with recent updates, use the status from Driver Location (already in drivers_with_locations)
+    status_counts = {
+        'Available': 0,
+        'En Route': 0,
+        'Busy': 0,
+        'Offline': 0
+    }
+
+    # Create a set of drivers with active locations
+    active_driver_ids = {d['driver'] for d in drivers_with_locations}
+
+    for driver in all_drivers:
+        # If driver has recent location update, they're already counted in drivers_with_locations
+        if driver['driver'] in active_driver_ids:
+            # Get status from the location data
+            for d in drivers_with_locations:
+                if d['driver'] == driver['driver']:
+                    status = d['hailing_status'] or 'Offline'
+                    status_counts[status] = status_counts.get(status, 0) + 1
+                    break
+        else:
+            # Driver doesn't have recent location, use their doctype status or mark as Offline
+            status = driver['hailing_status'] or 'Offline'
+            # If they claim to be Available/En Route/Busy but have no recent location, consider them Offline
+            if status != 'Offline' and (not driver['timestamp'] or driver['timestamp'] < get_datetime(cutoff_time)):
+                status = 'Offline'
+            status_counts[status] = status_counts.get(status, 0) + 1
+
+    return {
+        'drivers': drivers_with_locations,
+        'counts': status_counts
+    }
+
+@frappe.whitelist()
 def get_driver_location(driver_id):
     """Get latest location for a specific driver"""
-    
+
     location = frappe.db.get_value("Driver Location",
         filters={"driver": driver_id},
         fieldname=["latitude", "longitude", "hailing_status", "timestamp", "heading", "speed_kmh"],
         order_by="timestamp desc",
         as_dict=True
     )
-    
+
     if not location:
         return None
-    
+
     # Check if stale
     settings = frappe.get_single("Hailing Settings")
     stale_threshold = settings.stale_location_threshold or 60
     cutoff_time = add_to_date(now(), seconds=-stale_threshold)
-    
+
     if get_datetime(location.timestamp) < get_datetime(cutoff_time):
         location['is_stale'] = True
     else:
         location['is_stale'] = False
-    
+
     return location
 
 def cleanup_stale_locations():

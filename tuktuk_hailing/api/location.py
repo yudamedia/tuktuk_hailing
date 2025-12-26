@@ -87,7 +87,7 @@ def update_driver_location(driver_id, latitude, longitude, accuracy=None, headin
     
     return {"success": True, "timestamp": loc.timestamp}
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_available_drivers(customer_lat=None, customer_lng=None, max_distance_km=None):
     """
     Get list of available drivers and their locations

@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"header_title\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">\ud83d\ude95 Hailing Dashboard</span>\",\"col\":12}},{\"id\":\"G5R7htPkqD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Fleet Location Map\",\"col\":12}}]",
+ "content": "[{\"id\":\"header_title\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">\ud83d\ude95 Hailing Dashboard</span>\",\"col\":12}},{\"id\":\"G5R7htPkqD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Fleet Location Map\",\"col\":12}},{\"id\":\"8evdPHLbrH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"\u270b\ud83c\udffb Hailing Settings\",\"col\":3}},{\"id\":\"2io3hC3fJn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"\ud83d\udde3\ufe0f Ride Requests\",\"col\":3}}]",
  "creation": "2025-12-24 17:08:02.520727",
  "custom_blocks": [
   {
@@ -18,7 +18,7 @@
  "is_hidden": 0,
  "label": "Tuktuk Hailing",
  "links": [],
- "modified": "2025-12-24 19:04:28.221149",
+ "modified": "2025-12-26 05:20:42.349612",
  "modified_by": "Administrator",
  "module": "Tuktuk Hailing",
  "name": "Tuktuk Hailing",
@@ -36,6 +36,22 @@
   }
  ],
  "sequence_id": 4.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "\u270b\ud83c\udffb Hailing Settings",
+   "link_to": "Hailing Settings",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "\ud83d\udde3\ufe0f Ride Requests",
+   "link_to": "Ride Request",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
  "title": "Tuktuk Hailing"
 }

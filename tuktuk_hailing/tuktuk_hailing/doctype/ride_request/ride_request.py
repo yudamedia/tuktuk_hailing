@@ -106,7 +106,7 @@ def create_ride_request(customer_phone, pickup_address, pickup_lat, pickup_lng,
     """Create a new ride request"""
     
     # Check if location is in service area
-    from tuktuk_hailing.doctype.hailing_settings.hailing_settings import is_location_in_service_area
+    from tuktuk_hailing.tuktuk_hailing.doctype.hailing_settings.hailing_settings import is_location_in_service_area
     
     if not is_location_in_service_area(pickup_lat, pickup_lng):
         frappe.throw("Pickup location is outside service area")

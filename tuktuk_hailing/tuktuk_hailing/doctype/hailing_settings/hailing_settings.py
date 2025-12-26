@@ -69,7 +69,7 @@ class HailingSettings(Document):
         except:
             return "<p>Invalid coordinates format. Cannot preview map.</p>"
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_hailing_settings():
     """Get hailing settings - used by client apps"""
     if not frappe.db.exists("Hailing Settings", "Hailing Settings"):

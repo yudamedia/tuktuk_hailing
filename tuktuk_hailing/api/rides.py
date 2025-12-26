@@ -13,7 +13,7 @@ def create_ride_request_public(customer_phone, pickup_address, pickup_lat, picku
     """
     
     # Import the function from ride_request doctype
-    from tuktuk_hailing.doctype.ride_request.ride_request import create_ride_request
+    from tuktuk_hailing.tuktuk_hailing.doctype.ride_request.ride_request import create_ride_request
     
     try:
         request_id = create_ride_request(
@@ -99,7 +99,7 @@ def accept_ride_request_by_driver(request_id, driver_id):
     """
     Driver accepts a ride request
     """
-    from tuktuk_hailing.doctype.ride_request.ride_request import accept_ride_request
+    from tuktuk_hailing.tuktuk_hailing.doctype.ride_request.ride_request import accept_ride_request
     
     try:
         result = accept_ride_request(request_id, driver_id)
@@ -139,7 +139,7 @@ def mark_ride_en_route(request_id):
     """
     Driver marks that they are en route to pickup customer
     """
-    from tuktuk_hailing.doctype.ride_request.ride_request import mark_en_route
+    from tuktuk_hailing.tuktuk_hailing.doctype.ride_request.ride_request import mark_en_route
     
     try:
         result = mark_en_route(request_id)
@@ -160,8 +160,8 @@ def complete_ride_by_driver(request_id, actual_fare):
     """
     Driver marks ride as complete and enters actual fare
     """
-    from tuktuk_hailing.doctype.ride_request.ride_request import complete_ride
-    from tuktuk_hailing.doctype.ride_trip.ride_trip import create_ride_trip_from_request
+    from tuktuk_hailing.tuktuk_hailing.doctype.ride_request.ride_request import complete_ride
+    from tuktuk_hailing.tuktuk_hailing.doctype.ride_trip.ride_trip import create_ride_trip_from_request
     
     try:
         # Complete the ride request
@@ -194,7 +194,7 @@ def cancel_ride_by_driver(request_id, reason=None):
     """
     Driver cancels an accepted ride
     """
-    from tuktuk_hailing.doctype.ride_request.ride_request import cancel_ride_request
+    from tuktuk_hailing.tuktuk_hailing.doctype.ride_request.ride_request import cancel_ride_request
     
     try:
         result = cancel_ride_request(request_id, "Driver", reason)
@@ -226,7 +226,7 @@ def cancel_ride_by_customer(request_id, customer_phone, reason=None):
             "error": "Unauthorized"
         }
     
-    from tuktuk_hailing.doctype.ride_request.ride_request import cancel_ride_request
+    from tuktuk_hailing.tuktuk_hailing.doctype.ride_request.ride_request import cancel_ride_request
     
     try:
         result = cancel_ride_request(request_id, "Customer", reason)

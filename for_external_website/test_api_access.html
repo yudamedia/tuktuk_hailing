@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Access Test - Sunny Tuktuk</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #ffe151;
+            padding-bottom: 10px;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #ffe151 0%, #ffc107 100%);
+            color: #333;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 API Access Test</h1>
+        
+        <div class="info">
+            <strong>Test Instructions:</strong><br>
+            1. Upload this file to your website at: <code>https://www.sunnytuktuk.com/test-api.html</code><br>
+            2. Click the buttons below to test API access<br>
+            3. You should see ✅ SUCCESS messages if everything works
+        </div>
+        
+        <div>
+            <button class="test-button" onclick="testSettings()">Test Hailing Settings API</button>
+            <button class="test-button" onclick="testDrivers()">Test Available Drivers API</button>
+            <button class="test-button" onclick="testBoth()">Test Both APIs</button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://console.sunnytuktuk.com';
+        
+        function showResult(message, isSuccess) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result ' + (isSuccess ? 'success' : 'error');
+            resultDiv.innerHTML = message;
+        }
+        
+        async function testSettings() {
+            showResult('⏳ Testing Hailing Settings API...', true);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/method/tuktuk_hailing.tuktuk_hailing.doctype.hailing_settings.hailing_settings.get_hailing_settings`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({})
+                });
+                
+                const data = await response.json();
+                
+                if (data.message) {
+                    showResult(
+                        '✅ SUCCESS! Hailing Settings Loaded:\n\n' +
+                        `Base Fare: KSH ${data.message.base_fare}\n` +
+                        `Per KM Rate: KSH ${data.message.per_km_rate}\n` +
+                        `Minimum Fare: KSH ${data.message.minimum_fare}\n` +
+                        `Surge Pricing: ${data.message.surge_pricing_enabled ? 'Enabled' : 'Disabled'}\n` +
+                        `Service Area Defined: ${data.message.service_area_coordinates ? 'Yes' : 'No'}\n\n` +
+                        `Full Response:\n${JSON.stringify(data.message, null, 2)}`,
+                        true
+                    );
+                } else {
+                    showResult('❌ API returned but no data found. Response:\n' + JSON.stringify(data, null, 2), false);
+                }
+            } catch (error) {
+                showResult(
+                    '❌ ERROR: API call failed!\n\n' +
+                    `Error: ${error.message}\n\n` +
+                    'Possible causes:\n' +
+                    '1. CORS not configured properly\n' +
+                    '2. API endpoint not whitelisted for guest access\n' +
+                    '3. Network/firewall issue\n' +
+                    '4. Server is down',
+                    false
+                );
+            }
+        }
+        
+        async function testDrivers() {
+            showResult('⏳ Testing Available Drivers API...', true);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/method/tuktuk_hailing.api.location.get_available_drivers`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({})
+                });
+                
+                const data = await response.json();
+                
+                if (data.message) {
+                    const drivers = Array.isArray(data.message) ? data.message : [];
+                    showResult(
+                        '✅ SUCCESS! Available Drivers Loaded:\n\n' +
+                        `Found ${drivers.length} available driver(s)\n\n` +
+                        (drivers.length > 0 
+                            ? drivers.map((d, i) => 
+                                `Driver ${i + 1}:\n` +
+                                `  Name: ${d.driver_name || 'N/A'}\n` +
+                                `  Vehicle: ${d.vehicle || 'N/A'}\n` +
+                                `  Location: ${d.display_latitude?.toFixed(4)}, ${d.display_longitude?.toFixed(4)}\n` +
+                                `  Last Update: ${d.timestamp || 'N/A'}`
+                              ).join('\n\n')
+                            : 'No drivers currently available'
+                        ) + '\n\n' +
+                        `Full Response:\n${JSON.stringify(data.message, null, 2)}`,
+                        true
+                    );
+                } else {
+                    showResult('✅ API accessible but returned no data.\n\nThis is normal if no drivers are currently available.\n\nResponse: ' + JSON.stringify(data, null, 2), true);
+                }
+            } catch (error) {
+                showResult(
+                    '❌ ERROR: API call failed!\n\n' +
+                    `Error: ${error.message}\n\n` +
+                    'Possible causes:\n' +
+                    '1. CORS not configured properly\n' +
+                    '2. API endpoint not whitelisted for guest access\n' +
+                    '3. Network/firewall issue\n' +
+                    '4. Server is down',
+                    false
+                );
+            }
+        }
+        
+        async function testBoth() {
+            showResult('⏳ Running both tests...', true);
+            await testSettings();
+            setTimeout(async () => {
+                const settingsResult = document.getElementById('result').innerHTML;
+                await testDrivers();
+                const driversResult = document.getElementById('result').innerHTML;
+                
+                showResult(
+                    '=== TEST 1: HAILING SETTINGS ===\n' + settingsResult + '\n\n' +
+                    '=== TEST 2: AVAILABLE DRIVERS ===\n' + driversResult,
+                    settingsResult.includes('✅') && driversResult.includes('✅')
+                );
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
+

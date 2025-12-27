@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"header_title\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">\ud83d\ude95 Hailing Dashboard</span>\",\"col\":12}},{\"id\":\"G5R7htPkqD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Fleet Location Map\",\"col\":12}},{\"id\":\"8evdPHLbrH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"\u270b\ud83c\udffb Hailing Settings\",\"col\":3}},{\"id\":\"2io3hC3fJn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"\ud83d\udde3\ufe0f Ride Requests\",\"col\":3}}]",
+ "content": "[{\"id\":\"header_title\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">\ud83d\ude95 Hailing Dashboard</span>\",\"col\":12}},{\"id\":\"G5R7htPkqD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Fleet Location Map\",\"col\":12}},{\"id\":\"8evdPHLbrH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"\u270b\ud83c\udffb Hailing Settings\",\"col\":3}},{\"id\":\"2io3hC3fJn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"\ud83d\udde3\ufe0f Ride Requests\",\"col\":3}},{\"id\":\"F_ipIrS674\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Places\",\"col\":3}},{\"id\":\"_Spt50QnQk\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Place Categories\",\"col\":3}}]",
  "creation": "2025-12-24 17:08:02.520727",
  "custom_blocks": [
   {
@@ -18,11 +18,20 @@
  "is_hidden": 0,
  "label": "Tuktuk Hailing",
  "links": [],
- "modified": "2025-12-26 05:20:42.349612",
+ "modified": "2025-12-27 03:35:03.275537",
  "modified_by": "Administrator",
  "module": "Tuktuk Hailing",
  "name": "Tuktuk Hailing",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Places",
+   "number_card_name": "Places"
+  },
+  {
+   "label": "Place Categories",
+   "number_card_name": "Place Categories"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,

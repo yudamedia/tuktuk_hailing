@@ -102,7 +102,8 @@ class RideRequest(Document):
 
 @frappe.whitelist()
 def create_ride_request(customer_phone, pickup_address, pickup_lat, pickup_lng, 
-                       destination_address, dest_lat, dest_lng, customer_name=None):
+                       destination_address, dest_lat, dest_lng, customer_name=None,
+                       passenger_count=1, group_booking=None, tuktuk_number=None):
     """Create a new ride request"""
     
     # Check if location is in service area
@@ -129,6 +130,9 @@ def create_ride_request(customer_phone, pickup_address, pickup_lat, pickup_lng,
         "destination_longitude": dest_lng,
         "estimated_distance_km": distance,
         "estimated_fare": estimated_fare,
+        "passenger_count": passenger_count,
+        "group_booking": group_booking,
+        "tuktuk_number": tuktuk_number,
         "status": "Pending",
         "requested_at": now()
     })
@@ -170,6 +174,11 @@ def accept_ride_request(request_id, driver_id):
     ride_request.accepted_by_vehicle = driver.assigned_tuktuk
     ride_request.accepted_at = now()
     ride_request.save(ignore_permissions=True)
+    
+    # Update group booking status if this is part of a group
+    if ride_request.group_booking:
+        update_group_booking_status(ride_request.group_booking, request_id)
+    
     frappe.db.commit()
     
     return {
@@ -191,6 +200,11 @@ def mark_en_route(request_id):
     
     ride_request.status = "En Route"
     ride_request.save(ignore_permissions=True)
+    
+    # Update group booking status if this is part of a group
+    if ride_request.group_booking:
+        update_group_booking_status(ride_request.group_booking, request_id)
+    
     frappe.db.commit()
     
     return {"success": True}
@@ -206,6 +220,11 @@ def complete_ride(request_id, actual_fare):
     ride_request.status = "Completed"
     ride_request.actual_fare = actual_fare
     ride_request.save(ignore_permissions=True)
+    
+    # Update group booking status if this is part of a group
+    if ride_request.group_booking:
+        update_group_booking_status(ride_request.group_booking, request_id)
+    
     frappe.db.commit()
     
     # Trigger M-Pesa STK push for payment
@@ -229,6 +248,11 @@ def cancel_ride_request(request_id, cancelled_by, reason=None):
     ride_request.cancellation_reason = reason
     ride_request.cancelled_at = now()
     ride_request.save(ignore_permissions=True)
+    
+    # Update group booking status if this is part of a group
+    if ride_request.group_booking:
+        update_group_booking_status(ride_request.group_booking, request_id)
+    
     frappe.db.commit()
     
     return {"success": True, "cancellation_fee": ride_request.cancellation_fee_charged}
@@ -261,6 +285,24 @@ def calculate_fare(pickup_lat, pickup_lng, dest_lat, dest_lng):
         fare = float(settings.minimum_fare)
     
     return round(fare, 2), round(distance, 2)
+
+def update_group_booking_status(group_booking_id, ride_request_id):
+    """Update group booking status and child table when a ride request status changes"""
+    try:
+        group_booking = frappe.get_doc("Group Booking", group_booking_id)
+        ride_request = frappe.get_doc("Ride Request", ride_request_id)
+        
+        # Update the child table row
+        for row in group_booking.ride_requests:
+            if row.ride_request == ride_request_id:
+                row.status = ride_request.status
+                break
+        
+        # Update group booking status
+        group_booking.update_status()
+        
+    except Exception as e:
+        frappe.log_error(f"Error updating group booking status: {str(e)}", "Group Booking Status Update")
 
 def notify_drivers(request_id):
     """Notify available drivers about new ride request"""

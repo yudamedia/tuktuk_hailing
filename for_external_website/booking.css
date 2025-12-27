@@ -2,9 +2,9 @@
 .booking-form {
     background: white;
     border-radius: 15px;
-    padding: 30px;
+    padding: 15px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    margin-top: 30px;
+    /* margin-top: 30px; */
 }
 
 .section-title {
@@ -30,6 +30,18 @@
 
 .form-group {
     margin-bottom: 20px;
+}
+
+/* Form row for side-by-side fields */
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
 }
 
 .form-group label {
@@ -272,6 +284,19 @@
     font-size: 14px;
 }
 
+.error a {
+    color: #f39c12;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.error a:hover {
+    color: #e67e22;
+    text-decoration: none;
+}
+
 /* Hidden Class */
 .hidden {
     display: none !important;
@@ -351,6 +376,322 @@
     
     .input-with-clear .input100 {
         padding-right: 40px;
+    }
+    
+    /* Responsive: stack fields on mobile */
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .form-row .form-group {
+        margin-bottom: 20px;
+    }
+}
+
+/* Autocomplete dropdown */
+.autocomplete-container {
+    position: relative;
+}
+
+.autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #ffe151;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: none;
+}
+
+.autocomplete-suggestions.active {
+    display: block;
+}
+
+.autocomplete-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s;
+}
+
+.autocomplete-item:hover {
+    background: #fff8dc;
+}
+
+.autocomplete-item.highlighted {
+    background: #ffe151;
+    color: #333;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item .place-name {
+    font-weight: 600;
+    color: #333;
+    /* No margin needed since category is hidden */
+}
+
+/* Category display removed for cleaner UI */
+/*
+.autocomplete-item .place-category {
+    font-size: 12px;
+    color: #666;
+}
+*/
+
+/* Badge styles removed - no longer showing LOCAL badge */
+/* 
+.autocomplete-item .place-badge {
+    display: inline-block;
+    background: #ffe151;
+    color: #333;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.autocomplete-item.highlighted .place-badge {
+    background: #ffc107;
+}
+*/
+
+/* No results message */
+.autocomplete-no-results {
+    padding: 30px 15px;
+    text-align: center;
+    color: #999;
+}
+
+.autocomplete-no-results i {
+    display: block;
+    font-size: 32px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+    color: #ccc;
+}
+
+.autocomplete-no-results p {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #666;
+}
+
+.autocomplete-no-results small {
+    font-size: 12px;
+    color: #999;
+}
+
+.autocomplete-no-results strong {
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+/* Passenger stepper styles */
+.passenger-stepper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 5px;
+}
+
+.passenger-stepper input[type="number"] {
+    width: 80px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background: #f8f9fa;
+}
+
+.stepper-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #ffe151;
+    background: #ffe151;
+    color: #333;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.stepper-btn:hover {
+    background: #ffd700;
+    border-color: #ffd700;
+    transform: scale(1.1);
+}
+
+.stepper-btn:active {
+    transform: scale(0.95);
+}
+
+.form-hint {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Tuktuk breakdown styles */
+.tuktuk-breakdown {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #ffe151;
+}
+
+.breakdown-header {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+.breakdown-header i {
+    color: #ffe151;
+    margin-right: 8px;
+}
+
+.breakdown-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+    color: #555;
+    font-size: 14px;
+}
+
+.breakdown-item:last-child {
+    border-bottom: none;
+}
+
+/* Mobile Scroll Button */
+.mobile-scroll-button {
+    display: none; /* Hidden by default */
+    position: fixed;
+    right: 20px;
+    bottom: 80px; /* Above back-to-top button */
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #ffe151 0%, #ffc107 100%);
+    color: #333;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 9999;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.mobile-scroll-button:active {
+    transform: scale(0.9);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+}
+
+/* Show only on mobile/tablet */
+@media (max-width: 768px) {
+    .mobile-scroll-button {
+        display: flex;
+    }
+}
+
+/* Visual feedback when scrolling is enabled */
+.mobile-scroll-button.scrolling {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+}
+
+/* Disable map interaction when scrolling */
+.map-panel.scroll-mode {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* Offline Message on Map */
+.offline-message-icon {
+    background: transparent;
+    border: none;
+}
+
+.offline-message-content {
+    background: rgba(231, 76, 60, 0.95);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    min-width: 280px;
+    backdrop-filter: blur(5px);
+}
+
+.offline-message-content i {
+    font-size: 36px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.offline-message-content h3 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.offline-message-content p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.95;
+}
+
+/* Disabled Request Button */
+.submit-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    box-shadow: none;
+}
+
+.submit-button.disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Responsive offline message */
+@media (max-width: 768px) {
+    .offline-message-content {
+        min-width: 240px;
+        padding: 15px;
+    }
+    
+    .offline-message-content h3 {
+        font-size: 18px;
+    }
+    
+    .offline-message-content p {
+        font-size: 13px;
     }
 }
 

@@ -3,19 +3,117 @@
 
 import frappe
 from frappe.utils import now
+import math
 
 @frappe.whitelist(allow_guest=True)
 def create_ride_request_public(customer_phone, pickup_address, pickup_lat, pickup_lng,
-                               destination_address, dest_lat, dest_lng, customer_name=None):
+                               destination_address, dest_lat, dest_lng, customer_name=None, passenger_count=1):
     """
     Public endpoint for customers to create ride requests
     Called from the booking page
+    Handles both single and group bookings (multiple tuktuks)
     """
     
-    # Import the function from ride_request doctype
+    try:
+        passenger_count = int(passenger_count) if passenger_count else 1
+        
+        # Check if multiple tuktuks needed (more than 3 passengers)
+        if passenger_count > 3:
+            # Create group booking with multiple linked ride requests
+            group_booking_id = create_group_booking(
+                customer_phone=customer_phone,
+                customer_name=customer_name,
+                passenger_count=passenger_count,
+                pickup_address=pickup_address,
+                pickup_lat=pickup_lat,
+                pickup_lng=pickup_lng,
+                destination_address=destination_address,
+                dest_lat=dest_lat,
+                dest_lng=dest_lng
+            )
+            
+            return {
+                "success": True,
+                "request_id": group_booking_id,
+                "is_group": True,
+                "tuktuks_required": math.ceil(passenger_count / 3),
+                "message": f"Group booking created for {passenger_count} passengers"
+            }
+        else:
+            # Single tuktuk booking
+            from tuktuk_hailing.tuktuk_hailing.doctype.ride_request.ride_request import create_ride_request
+            
+            request_id = create_ride_request(
+                customer_phone=customer_phone,
+                pickup_address=pickup_address,
+                pickup_lat=pickup_lat,
+                pickup_lng=pickup_lng,
+                destination_address=destination_address,
+                dest_lat=dest_lat,
+                dest_lng=dest_lng,
+                customer_name=customer_name,
+                passenger_count=passenger_count
+            )
+            
+            return {
+                "success": True,
+                "request_id": request_id,
+                "is_group": False,
+                "message": "Ride request created successfully"
+            }
+    
+    except Exception as e:
+        frappe.log_error(f"Ride request creation error: {str(e)}", "Ride Request Error")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+def create_group_booking(customer_phone, customer_name, passenger_count,
+                        pickup_address, pickup_lat, pickup_lng,
+                        destination_address, dest_lat, dest_lng):
+    """
+    Create a group booking with multiple linked ride requests
+    One tuktuk can carry max 3 passengers
+    """
+    from tuktuk_hailing.tuktuk_hailing.doctype.ride_request.ride_request import calculate_fare
+    
+    # Calculate tuktuks needed
+    tuktuks_needed = math.ceil(passenger_count / 3)
+    
+    # Calculate fare
+    single_fare, distance = calculate_fare(pickup_lat, pickup_lng, dest_lat, dest_lng)
+    total_fare = single_fare * tuktuks_needed
+    
+    # Create Group Booking record
+    group_booking = frappe.get_doc({
+        "doctype": "Group Booking",
+        "customer_phone": customer_phone,
+        "customer_name": customer_name,
+        "total_passengers": passenger_count,
+        "tuktuks_required": tuktuks_needed,
+        "pickup_address": pickup_address,
+        "pickup_latitude": pickup_lat,
+        "pickup_longitude": pickup_lng,
+        "destination_address": destination_address,
+        "destination_latitude": dest_lat,
+        "destination_longitude": dest_lng,
+        "estimated_distance_km": distance,
+        "total_estimated_fare": total_fare,
+        "status": "Pending",
+        "requested_at": now()
+    })
+    
+    group_booking.insert(ignore_permissions=True)
+    
+    # Create individual Ride Requests
+    remaining_passengers = passenger_count
     from tuktuk_hailing.tuktuk_hailing.doctype.ride_request.ride_request import create_ride_request
     
-    try:
+    for i in range(tuktuks_needed):
+        pax_count = min(3, remaining_passengers)
+        
+        # Create ride request
         request_id = create_ride_request(
             customer_phone=customer_phone,
             pickup_address=pickup_address,
@@ -24,21 +122,26 @@ def create_ride_request_public(customer_phone, pickup_address, pickup_lat, picku
             destination_address=destination_address,
             dest_lat=dest_lat,
             dest_lng=dest_lng,
-            customer_name=customer_name
+            customer_name=customer_name,
+            passenger_count=pax_count,
+            group_booking=group_booking.name,
+            tuktuk_number=i + 1
         )
         
-        return {
-            "success": True,
-            "request_id": request_id,
-            "message": "Ride request created successfully"
-        }
+        # Add to group booking child table
+        group_booking.append("ride_requests", {
+            "ride_request": request_id,
+            "tuktuk_number": i + 1,
+            "passenger_count": pax_count,
+            "status": "Pending"
+        })
+        
+        remaining_passengers -= pax_count
     
-    except Exception as e:
-        frappe.log_error(f"Ride request creation error: {str(e)}", "Ride Request Error")
-        return {
-            "success": False,
-            "error": str(e)
-        }
+    group_booking.save(ignore_permissions=True)
+    frappe.db.commit()
+    
+    return group_booking.name
 
 @frappe.whitelist()
 def get_pending_requests_for_driver(driver_id):
@@ -242,6 +345,64 @@ def cancel_ride_by_customer(request_id, customer_phone, reason=None):
             "success": False,
             "error": str(e)
         }
+
+@frappe.whitelist(allow_guest=True)
+def get_group_booking_status(group_booking_id, customer_phone):
+    """
+    Get status of a group booking with multiple tuktuks
+    """
+    
+    group_booking = frappe.get_doc("Group Booking", group_booking_id)
+    
+    # Verify customer
+    if group_booking.customer_phone != customer_phone:
+        return {
+            "success": False,
+            "error": "Unauthorized"
+        }
+    
+    response = {
+        "success": True,
+        "group_booking_id": group_booking_id,
+        "is_group": True,
+        "status": group_booking.status,
+        "total_passengers": group_booking.total_passengers,
+        "tuktuks_required": group_booking.tuktuks_required,
+        "pickup_address": group_booking.pickup_address,
+        "destination_address": group_booking.destination_address,
+        "total_estimated_fare": group_booking.total_estimated_fare,
+        "ride_requests": []
+    }
+    
+    # Get status of each ride request
+    for row in group_booking.ride_requests:
+        if row.ride_request:
+            ride_request = frappe.get_doc("Ride Request", row.ride_request)
+            
+            ride_info = {
+                "tuktuk_number": row.tuktuk_number,
+                "passenger_count": row.passenger_count,
+                "status": ride_request.status
+            }
+            
+            # Add driver info if accepted
+            if ride_request.status in ["Accepted", "En Route", "Completed"] and ride_request.accepted_by_driver:
+                try:
+                    driver = frappe.get_doc("TukTuk Driver", ride_request.accepted_by_driver)
+                    vehicle = frappe.get_doc("TukTuk Vehicle", ride_request.accepted_by_vehicle)
+                    
+                    ride_info.update({
+                        "driver_name": driver.driver_name,
+                        "driver_phone": driver.phone_number,
+                        "driver_photo": driver.photo,
+                        "vehicle_id": vehicle.tuktuk_id
+                    })
+                except:
+                    pass
+            
+            response["ride_requests"].append(ride_info)
+    
+    return response
 
 @frappe.whitelist(allow_guest=True)
 def get_ride_status(request_id, customer_phone):

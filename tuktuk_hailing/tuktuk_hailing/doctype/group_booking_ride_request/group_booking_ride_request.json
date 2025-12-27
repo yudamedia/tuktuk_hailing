@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "creation": "2024-12-27 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ride_request",
+  "tuktuk_number",
+  "passenger_count",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "ride_request",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Ride Request",
+   "options": "Ride Request"
+  },
+  {
+   "fieldname": "tuktuk_number",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Tuktuk Number"
+  },
+  {
+   "fieldname": "passenger_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Passenger Count"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Status",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-12-27 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Tuktuk Hailing",
+ "name": "Group Booking Ride Request",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
+

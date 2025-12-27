@@ -1,0 +1,99 @@
+[
+ {
+  "charts": [],
+  "content": "[{\"id\":\"header_title\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">🚕 Hailing Dashboard</span>\",\"col\":12}},{\"id\":\"G5R7htPkqD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Fleet Location Map\",\"col\":12}},{\"id\":\"8evdPHLbrH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"✋🏻 Hailing Settings\",\"col\":3}},{\"id\":\"2io3hC3fJn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"🗣️ Ride Requests\",\"col\":3}},{\"id\":\"F_ipIrS674\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Places\",\"col\":3}},{\"id\":\"_Spt50QnQk\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Place Categories\",\"col\":3}}]",
+  "custom_blocks": [
+   {
+    "custom_block_name": "Fleet Location Map",
+    "label": "Fleet Location Map",
+    "parent": "Tuktuk Hailing",
+    "parentfield": "custom_blocks",
+    "parenttype": "Workspace"
+   }
+  ],
+  "docstatus": 0,
+  "doctype": "Workspace",
+  "for_user": "",
+  "hide_custom": 0,
+  "icon": "customization",
+  "indicator_color": "",
+  "is_hidden": 0,
+  "label": "Tuktuk Hailing",
+  "links": [],
+  "modified": "2025-12-27 03:35:03.275537",
+  "module": "Tuktuk Hailing",
+  "name": "Tuktuk Hailing",
+  "number_cards": [
+   {
+    "label": "Places",
+    "number_card_name": "Places",
+    "parent": "Tuktuk Hailing",
+    "parentfield": "number_cards",
+    "parenttype": "Workspace"
+   },
+   {
+    "label": "Place Categories",
+    "number_card_name": "Place Categories",
+    "parent": "Tuktuk Hailing",
+    "parentfield": "number_cards",
+    "parenttype": "Workspace"
+   }
+  ],
+  "parent_page": "",
+  "public": 1,
+  "quick_lists": [],
+  "restrict_to_domain": null,
+  "roles": [
+   {
+    "parent": "Tuktuk Hailing",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   },
+   {
+    "parent": "Tuktuk Hailing",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Tuktuk Manager"
+   }
+  ],
+  "sequence_id": 4.0,
+  "shortcuts": [
+   {
+    "color": "Grey",
+    "doc_view": "List",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "✋🏻 Hailing Settings",
+    "link_to": "Hailing Settings",
+    "parent": "Tuktuk Hailing",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "report_ref_doctype": null,
+    "restrict_to_domain": null,
+    "stats_filter": null,
+    "type": "DocType",
+    "url": null
+   },
+   {
+    "color": "Grey",
+    "doc_view": "List",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "🗣️ Ride Requests",
+    "link_to": "Ride Request",
+    "parent": "Tuktuk Hailing",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "report_ref_doctype": null,
+    "restrict_to_domain": null,
+    "stats_filter": "[]",
+    "type": "DocType",
+    "url": null
+   }
+  ],
+  "title": "Tuktuk Hailing"
+ }
+]

@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>Sunny Tuktuk - Template</title>
+	<title>Sunny Tuktuk - Request a SUNNY</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="description" content="Sunny Tuktuk Ltd. offers eco-friendly electric Tuk-tuk services on Kenya's South Coast. Clean, reliable transportation with professional drivers.">
@@ -83,17 +83,15 @@
             </a>
         </div>
         
-        <div class="w-full p-t-100 p-b-10 p-l-20-md">
+        <div class="w-full p-t-150 p-b-5 p-l-20-md">
             <p class="m2-txt1 p-b-20">
                 <img src="images/icons/logo-text.png" alt="Sunny Tuktuk">
             </p>
         </div>
                   <div class="booking-form">
-                <div id="error-message" class="error hidden"></div>
-                
                 <!-- Booking Section -->
                 <div id="booking-section">
-                    <h2 class="section-title">Book Your Ride</h2>
+                    <h2 class="section-title">Request your SUNNY</h2>
                     
                     <div id="loading-settings" class="map-instruction" style="display: none; color: #f39c12;">
                         <i class="fas fa-spinner fa-spin"></i> Loading booking settings...
@@ -103,14 +101,16 @@
                         <i class="fas fa-info-circle"></i> Click on the map to set your pickup and destination locations
                     </div>
                     
-                    <div class="form-group">
-                        <label for="phone"><i class="fab fa-whatsapp"></i> WhatsApp Number</label>
-                        <input type="tel" id="phone" class="input100" placeholder="+254 712 345 678" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="name">Your Name (optional)</label>
-                        <input type="text" id="name" class="input100" placeholder="John Doe">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone"><i class="fab fa-whatsapp"></i> WhatsApp Number</label>
+                            <input type="tel" id="phone" class="input100" placeholder="+254 712 345 678" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="name">Name (optional)</label>
+                            <input type="text" id="name" class="input100" placeholder="John Doe">
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -133,14 +133,27 @@
                         </div>
                     </div>
                     
+                    <div class="form-group">
+                        <label for="passengers"><i class="fas fa-users"></i> Number of Passengers</label>
+                        <div class="passenger-stepper">
+                            <button type="button" class="stepper-btn" onclick="changePassengers(-1)">-</button>
+                            <input type="number" id="passengers" value="1" min="1" max="20" readonly>
+                            <button type="button" class="stepper-btn" onclick="changePassengers(1)">+</button>
+                        </div>
+                        <small class="form-hint">Maximum 3 passengers per tuktuk</small>
+                    </div>
+                    
                     <div id="fare-estimate" class="fare-estimate hidden">
                         <h3>Estimated Fare</h3>
                         <div class="fare-amount">KSH <span id="fare-amount">0</span></div>
                         <div class="distance-info" id="distance-info"></div>
+                        <div id="tuktuk-breakdown" class="tuktuk-breakdown hidden"></div>
                     </div>
                     
+                    <div id="error-message" class="error hidden"></div>
+                    
                     <button class="submit-button" id="request-btn" onclick="requestRide()">
-                        <span>Request Sunny Tuktuk</span>
+                        <span>Request a Sunny</span>
                         <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
@@ -195,24 +208,27 @@
     </div>
         
     <!-- Right Side Content -->
-    <div class="wsize2 bg0 p-l-70 p-t-50 p-b-50 p-r-50 respon2" style="background-color: #f8f9fa; height: 100vh; overflow: hidden; display: flex; flex-direction: column;">
+    <div class="wsize2 bg0 p-l-70 p-t-50 p-b-50 p-r-50 respon2" style="padding: 0px 0px; background-color: #f8f9fa; height: 100vh; overflow: hidden; display: flex; flex-direction: column;">
         <!-- Right Map Panel -->
         <div class="map-panel">
             <div id="map"></div>
         </div>
     </div>
-    
     <script>
-        // **IMPORTANT**: Update this to your actual ERPNext domain
+        
         const API_BASE_URL = 'https://console.sunnytuktuk.com';
         
         let map, pickupMarker, destinationMarker, serviceAreaPolygon;
         let pickupCoords = null, destCoords = null;
         let currentRequestId = null;
+        let isGroupBooking = false;
         let currentDriverPhone = null;
         let driverMarkers = [];
         let geocodingTimeout = null;
         let lastGeocodingTime = 0;
+        let driversAvailable = false;
+        let driverCheckInterval = null;
+        let offlineMessageMarker = null;
         
         // Hailing Settings from backend
         let hailingSettings = {
@@ -364,14 +380,14 @@
                 }
             });
             
-            // Load available drivers
-            loadAvailableDrivers();
+            // Load available drivers and start polling
+            startDriverPolling();
         }
         
         function setPickup(lat, lng, address = null) {
             // Check if location is in service area
             if (!isInServiceArea(lat, lng)) {
-                showError('Sorry, this location is outside our service area. Please select a location within Diani Beach.');
+                showError('Sorry, this location is outside our service area. Please select a location within Diani Beach. <a href="#" onclick="centerMapToServiceArea(); return false;">Center map to service area</a>', true);
                 return;
             }
             
@@ -416,7 +432,7 @@
         function setDestination(lat, lng, address = null) {
             // Check if location is in service area
             if (!isInServiceArea(lat, lng)) {
-                showError('Sorry, this location is outside our service area. Please select a location within Diani Beach.');
+                showError('Sorry, this location is outside our service area. Please select a location within Diani Beach. <a href="#" onclick="centerMapToServiceArea(); return false;">Center map to service area</a>', true);
                 return;
             }
             
@@ -458,11 +474,11 @@
             }
         }
         
-        // Geocode address using OpenStreetMap Nominatim API
+        // NEW: Search local places first, then fallback to Nominatim
         async function geocodeAddress(address, type) {
             if (!address || address.trim() === '') return;
             
-            // Rate limiting - ensure at least 1 second between requests
+            // Rate limiting
             const now = Date.now();
             if (now - lastGeocodingTime < 1000) {
                 showError('Please wait a moment before searching again');
@@ -478,14 +494,55 @@
             try {
                 lastGeocodingTime = now;
                 
-                // Bias search to Diani Beach area
-                const response = await fetch(
+                // STEP 1: Search local places database first
+                const localResponse = await fetch(
+                    `${API_BASE_URL}/api/method/tuktuk_hailing.api.places.search_places?` +
+                    `query=${encodeURIComponent(address)}&limit=1`,
+                    {
+                        method: 'GET',
+                        headers: {'Content-Type': 'application/json'}
+                    }
+                );
+                
+                const localData = await localResponse.json();
+                
+                // If we found local results, use them
+                if (localData.message && localData.message.source === 'local' && 
+                    localData.message.results && localData.message.results.length > 0) {
+                    
+                    const result = localData.message.results[0];
+                    const lat = parseFloat(result.lat);
+                    const lng = parseFloat(result.lon);
+                    
+                    // Check if in service area
+                    if (!isInServiceArea(lat, lng)) {
+                        showError('This location is outside our service area.');
+                        inputField.value = originalValue;
+                        inputField.disabled = false;
+                        return;
+                    }
+                    
+                    // Set the location with local database result
+                    if (type === 'pickup') {
+                        setPickup(lat, lng, result.display_name);
+                    } else if (type === 'destination') {
+                        setDestination(lat, lng, result.display_name);
+                    }
+                    
+                    inputField.disabled = false;
+                    return; // Success with local database
+                }
+                
+                // STEP 2: No local results, fallback to Nominatim
+                console.log('No local results, trying Nominatim...');
+                
+                const nominatimResponse = await fetch(
                     `https://nominatim.openstreetmap.org/search?` +
                     `q=${encodeURIComponent(address)}&` +
                     `format=json&` +
                     `limit=1&` +
-                    `viewbox=39.5,4.35,39.65,-4.2&` + // Diani Beach bounding box
-                    `bounded=0`, // Allow results outside but prefer inside
+                    `viewbox=39.5,-4.35,39.65,-4.2&` +
+                    `bounded=0`,
                     {
                         headers: {
                             'User-Agent': 'SunnyTuktuk/1.0'
@@ -493,10 +550,10 @@
                     }
                 );
                 
-                const data = await response.json();
+                const nominatimData = await nominatimResponse.json();
                 
-                if (data && data.length > 0) {
-                    const result = data[0];
+                if (nominatimData && nominatimData.length > 0) {
+                    const result = nominatimData[0];
                     const lat = parseFloat(result.lat);
                     const lng = parseFloat(result.lon);
                     
@@ -508,7 +565,7 @@
                         return;
                     }
                     
-                    // Set the location with the display name
+                    // Set the location with Nominatim result
                     if (type === 'pickup') {
                         setPickup(lat, lng, result.display_name);
                     } else if (type === 'destination') {
@@ -517,20 +574,257 @@
                     
                     inputField.disabled = false;
                 } else {
-                    showError('Address not found. Please try a different search or click on the map.');
+                    showError('Location not found. Please try a different search or click on the map.');
                     inputField.value = originalValue;
                     inputField.disabled = false;
                 }
+                
             } catch (error) {
                 console.error('Geocoding error:', error);
-                showError('Error searching for address. Please try again or click on the map.');
+                showError('Error searching for location. Please try again or click on the map.');
                 inputField.value = originalValue;
                 inputField.disabled = false;
             }
+        }       
+
+        // Autocomplete functionality
+        let autocompleteTimeout = null;
+        let currentAutocompleteField = null;
+        let selectedSuggestionIndex = -1;
+
+        function setupAutocomplete() {
+            const pickupInput = document.getElementById('pickup');
+            const destinationInput = document.getElementById('destination');
+            
+            // Create autocomplete containers
+            createAutocompleteContainer('pickup');
+            createAutocompleteContainer('destination');
+            
+            // Setup listeners
+            pickupInput.addEventListener('input', (e) => handleAutocompleteInput(e, 'pickup'));
+            destinationInput.addEventListener('input', (e) => handleAutocompleteInput(e, 'destination'));
+            
+            // Add keyboard navigation
+            pickupInput.addEventListener('keydown', (e) => handleAutocompleteKeydown(e, 'pickup'));
+            destinationInput.addEventListener('keydown', (e) => handleAutocompleteKeydown(e, 'destination'));
+            
+            // Close autocomplete when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.form-group')) {
+                    closeAllAutocomplete();
+                }
+            });
+        }
+
+        function createAutocompleteContainer(fieldId) {
+            const formGroup = document.getElementById(fieldId).closest('.form-group');
+            const container = document.createElement('div');
+            container.className = 'autocomplete-suggestions';
+            container.id = `autocomplete-${fieldId}`;
+            formGroup.style.position = 'relative';
+            formGroup.appendChild(container);
+        }
+
+        function handleAutocompleteKeydown(e, fieldType) {
+            const container = document.getElementById(`autocomplete-${fieldType}`);
+            
+            // Only handle keys if autocomplete is active
+            if (!container || !container.classList.contains('active')) {
+                return;
+            }
+            
+            // Handle arrow key navigation
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                navigateAutocomplete(fieldType, 'down');
+                return;
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                navigateAutocomplete(fieldType, 'up');
+                return;
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                selectHighlightedSuggestion(fieldType);
+                return;
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                closeAutocomplete(fieldType);
+                return;
+            }
+        }
+
+        function navigateAutocomplete(fieldType, direction) {
+            const container = document.getElementById(`autocomplete-${fieldType}`);
+            const items = container.querySelectorAll('.autocomplete-item');
+            
+            if (items.length === 0) return;
+            
+            // Remove previous highlight
+            items.forEach(item => item.classList.remove('highlighted'));
+            
+            // Calculate new index
+            if (direction === 'down') {
+                selectedSuggestionIndex = (selectedSuggestionIndex + 1) % items.length;
+            } else {
+                selectedSuggestionIndex = selectedSuggestionIndex <= 0 
+                    ? items.length - 1 
+                    : selectedSuggestionIndex - 1;
+            }
+            
+            // Highlight new item
+            items[selectedSuggestionIndex].classList.add('highlighted');
+            items[selectedSuggestionIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+
+        function selectHighlightedSuggestion(fieldType) {
+            const container = document.getElementById(`autocomplete-${fieldType}`);
+            const highlighted = container.querySelector('.autocomplete-item.highlighted');
+            
+            if (highlighted) {
+                highlighted.click();
+            }
+        }
+
+        async function handleAutocompleteInput(e, fieldType) {
+            const query = e.target.value.trim();
+            
+            // Reset selection index when typing
+            selectedSuggestionIndex = -1;
+            
+            // Clear existing timeout
+            if (autocompleteTimeout) {
+                clearTimeout(autocompleteTimeout);
+            }
+            
+            // Need at least 2 characters
+            if (query.length < 2) {
+                closeAutocomplete(fieldType);
+                return;
+            }
+            
+            // Debounce - wait 300ms after user stops typing
+            autocompleteTimeout = setTimeout(async () => {
+                await fetchAutocompleteSuggestions(query, fieldType);
+            }, 300);
+        }
+
+        async function fetchAutocompleteSuggestions(query, fieldType) {
+            try {
+                const response = await fetch(
+                    `${API_BASE_URL}/api/method/tuktuk_hailing.api.places.get_place_suggestions?` +
+                    `query=${encodeURIComponent(query)}&limit=10`,
+                    {
+                        method: 'GET',
+                        headers: {'Content-Type': 'application/json'}
+                    }
+                );
+                
+                const data = await response.json();
+                
+                if (data.message && data.message.length > 0) {
+                    displayAutocompleteSuggestions(data.message, fieldType);
+                } else {
+                    closeAutocomplete(fieldType);
+                }
+                
+            } catch (error) {
+                console.error('Autocomplete error:', error);
+                closeAutocomplete(fieldType);
+            }
+        }
+
+        function displayAutocompleteSuggestions(suggestions, fieldType) {
+            const container = document.getElementById(`autocomplete-${fieldType}`);
+            
+            // Reset selection index
+            selectedSuggestionIndex = -1;
+            
+            if (suggestions.length === 0) {
+                container.innerHTML = `
+                    <div class="autocomplete-no-results">
+                        <i class="fas fa-search"></i>
+                        <p>No local places found.</p>
+                        <small>Press <strong>Enter</strong> to search with Nominatim.</small>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = suggestions.map(suggestion => `
+                    <div class="autocomplete-item" data-lat="${suggestion.lat}" data-lng="${suggestion.lon}" data-label="${suggestion.label}">
+                        <div class="place-name">
+                            ${suggestion.value}
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Add click listeners
+                container.querySelectorAll('.autocomplete-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const lat = parseFloat(item.dataset.lat);
+                        const lng = parseFloat(item.dataset.lng);
+                        const label = item.dataset.label;
+                        
+                        if (fieldType === 'pickup') {
+                            setPickup(lat, lng, label);
+                        } else {
+                            setDestination(lat, lng, label);
+                        }
+                        
+                        closeAutocomplete(fieldType);
+                    });
+                });
+            }
+            
+            container.classList.add('active');
+            currentAutocompleteField = fieldType;
+        }
+
+        function closeAutocomplete(fieldType) {
+            const container = document.getElementById(`autocomplete-${fieldType}`);
+            if (container) {
+                container.classList.remove('active');
+                container.innerHTML = '';
+            }
+        }
+
+        function closeAllAutocomplete() {
+            closeAutocomplete('pickup');
+            closeAutocomplete('destination');
+            currentAutocompleteField = null;
+        }
+
+        // Initialize autocomplete when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            setupInputListeners();
+            setupAutocomplete(); // Add this line
+        });
+
+        // Passenger stepper functions
+        function changePassengers(delta) {
+            const input = document.getElementById('passengers');
+            let currentValue = parseInt(input.value) || 1;
+            let newValue = currentValue + delta;
+            
+            // Enforce min and max
+            if (newValue < 1) newValue = 1;
+            if (newValue > 20) newValue = 20;
+            
+            input.value = newValue;
+            
+            // Recalculate fare if locations are set
+            calculateFare();
         }
         
+        function calculateTukTuksNeeded(passengers) {
+            return Math.ceil(passengers / 3);
+        }
+
         function calculateFare() {
             if (!pickupCoords || !destCoords) return;
+            
+            // Get passenger count
+            const passengers = parseInt(document.getElementById('passengers').value) || 1;
+            const tukTuksNeeded = calculateTukTuksNeeded(passengers);
             
             // Haversine formula for distance calculation
             const R = 6371; // Earth's radius in km
@@ -546,10 +840,34 @@
             const baseFare = hailingSettings.base_fare || 50;
             const perKm = hailingSettings.per_km_rate || 40;
             const minimumFare = hailingSettings.minimum_fare || 100;
-            const estimatedFare = Math.max(minimumFare, baseFare + (distance * perKm));
+            const singleTukTukFare = Math.max(minimumFare, baseFare + (distance * perKm));
             
-            document.getElementById('fare-amount').textContent = Math.round(estimatedFare);
+            // Calculate total fare (multiply by number of tuktuks)
+            const totalFare = singleTukTukFare * tukTuksNeeded;
+            
+            // Update fare display
+            document.getElementById('fare-amount').textContent = Math.round(totalFare);
             document.getElementById('distance-info').textContent = `Distance: ${distance.toFixed(2)} km`;
+            
+            // Show breakdown if multiple tuktuks needed
+            const breakdownEl = document.getElementById('tuktuk-breakdown');
+            if (tukTuksNeeded > 1) {
+                let breakdownHtml = `<div class="breakdown-header"><i class="fas fa-taxi"></i> ${tukTuksNeeded} Tuktuks Required</div>`;
+                
+                // Calculate passenger distribution
+                let remainingPassengers = passengers;
+                for (let i = 1; i <= tukTuksNeeded; i++) {
+                    const paxForThisTuktuk = Math.min(3, remainingPassengers);
+                    breakdownHtml += `<div class="breakdown-item">Tuktuk ${i}: ${paxForThisTuktuk} passenger${paxForThisTuktuk > 1 ? 's' : ''} - KSH ${Math.round(singleTukTukFare)}</div>`;
+                    remainingPassengers -= paxForThisTuktuk;
+                }
+                
+                breakdownEl.innerHTML = breakdownHtml;
+                breakdownEl.classList.remove('hidden');
+            } else {
+                breakdownEl.classList.add('hidden');
+            }
+            
             document.getElementById('fare-estimate').classList.remove('hidden');
         }
         
@@ -563,7 +881,20 @@
                 
                 const data = await response.json();
                 
-                if (data.message) {
+                // Clear existing driver markers
+                driverMarkers.forEach(marker => map.removeLayer(marker));
+                driverMarkers = [];
+                
+                // Clear offline message if exists
+                if (offlineMessageMarker) {
+                    map.removeLayer(offlineMessageMarker);
+                    offlineMessageMarker = null;
+                }
+                
+                if (data.message && data.message.length > 0) {
+                    // Drivers are available
+                    driversAvailable = true;
+                    
                     data.message.forEach(driver => {
                         const marker = L.marker([driver.display_latitude, driver.display_longitude], {
                             icon: L.icon({
@@ -575,17 +906,93 @@
                         }).addTo(map).bindPopup(`Sunny Tuktuk Available`);
                         driverMarkers.push(marker);
                     });
+                    
+                    updateRequestButtonState(true);
+                } else {
+                    // No drivers available
+                    driversAvailable = false;
+                    showOfflineMessage();
+                    updateRequestButtonState(false);
                 }
             } catch (error) {
                 console.error('Error loading drivers:', error);
+                driversAvailable = false;
+                updateRequestButtonState(false);
+            }
+        }
+        
+        function showOfflineMessage() {
+            if (!map) return;
+            
+            // Get map center
+            const center = map.getCenter();
+            
+            // Create custom div icon for offline message
+            const offlineIcon = L.divIcon({
+                className: 'offline-message-icon',
+                html: `
+                    <div class="offline-message-content">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>All Drivers Offline</h3>
+                        <p>No tuktuks are currently available. Please check back in a few minutes.</p>
+                    </div>
+                `,
+                iconSize: [300, 120],
+                iconAnchor: [150, 60]
+            });
+            
+            offlineMessageMarker = L.marker(center, { icon: offlineIcon })
+                .addTo(map);
+        }
+        
+        function updateRequestButtonState(enabled) {
+            const btn = document.getElementById('request-btn');
+            if (!btn) return;
+            
+            if (enabled) {
+                btn.disabled = false;
+                btn.classList.remove('disabled');
+                btn.title = '';
+            } else {
+                btn.disabled = true;
+                btn.classList.add('disabled');
+                btn.title = 'No drivers currently available. We are automatically checking for available drivers...';
+            }
+        }
+        
+        function startDriverPolling() {
+            // Initial load
+            loadAvailableDrivers();
+            
+            // Poll every 30 seconds
+            if (driverCheckInterval) {
+                clearInterval(driverCheckInterval);
+            }
+            
+            driverCheckInterval = setInterval(() => {
+                loadAvailableDrivers();
+            }, 30000); // 30 seconds
+        }
+        
+        function stopDriverPolling() {
+            if (driverCheckInterval) {
+                clearInterval(driverCheckInterval);
+                driverCheckInterval = null;
             }
         }
         
         async function requestRide() {
+            // Check if drivers are available
+            if (!driversAvailable) {
+                showError('No drivers are currently available. Please wait while we check for available tuktuks.');
+                return;
+            }
+            
             const phone = document.getElementById('phone').value;
             const name = document.getElementById('name').value;
             const pickup = document.getElementById('pickup').value;
             const destination = document.getElementById('destination').value;
+            const passengers = parseInt(document.getElementById('passengers').value) || 1;
             
             if (!phone || !pickup || !destination) {
                 showError('Please fill in all required fields');
@@ -613,7 +1020,8 @@
                         pickup_lng: pickupCoords.lng,
                         destination_address: destination,
                         dest_lat: destCoords.lat,
-                        dest_lng: destCoords.lng
+                        dest_lng: destCoords.lng,
+                        passenger_count: passengers
                     })
                 });
                 
@@ -622,6 +1030,16 @@
                 
                 if (data.message && data.message.success) {
                     currentRequestId = data.message.request_id;
+                    isGroupBooking = data.message.is_group || false;
+                    
+                    // Update waiting message for group bookings
+                    if (isGroupBooking) {
+                        const waitingSection = document.querySelector('#waiting-section .status-pending p');
+                        if (waitingSection) {
+                            waitingSection.textContent = `Finding ${data.message.tuktuks_required} tuktuks for your group...`;
+                        }
+                    }
+                    
                     showWaitingScreen();
                     pollRideStatus();
                 } else {
@@ -672,11 +1090,18 @@
             if (!currentRequestId) return;
             
             try {
-                const response = await fetch(`${API_BASE_URL}/api/method/tuktuk_hailing.api.rides.get_ride_status`, {
+                // Use different endpoint for group bookings
+                const endpoint = isGroupBooking 
+                    ? 'tuktuk_hailing.api.rides.get_group_booking_status'
+                    : 'tuktuk_hailing.api.rides.get_ride_status';
+                
+                const requestParam = isGroupBooking ? 'group_booking_id' : 'request_id';
+                
+                const response = await fetch(`${API_BASE_URL}/api/method/${endpoint}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        request_id: currentRequestId,
+                        [requestParam]: currentRequestId,
                         customer_phone: document.getElementById('phone').value
                     })
                 });
@@ -684,16 +1109,20 @@
                 const data = await response.json();
                 
                 if (data.message && data.message.success) {
-                    const status = data.message.status;
-                    
-                    if (status === 'Accepted' || status === 'En Route') {
-                        showDriverInfo(data.message);
-                        return;
-                    } else if (status === 'Pending') {
-                        setTimeout(pollRideStatus, 3000);
-                    } else if (status === 'Expired' || status === 'Cancelled') {
-                        showError('Ride request ' + status.toLowerCase() + '. Please try again.');
-                        setTimeout(() => location.reload(), 3000);
+                    if (isGroupBooking) {
+                        handleGroupBookingStatus(data.message);
+                    } else {
+                        const status = data.message.status;
+                        
+                        if (status === 'Accepted' || status === 'En Route') {
+                            showDriverInfo(data.message);
+                            return;
+                        } else if (status === 'Pending') {
+                            setTimeout(pollRideStatus, 3000);
+                        } else if (status === 'Expired' || status === 'Cancelled') {
+                            showError('Ride request ' + status.toLowerCase() + '. Please try again.');
+                            setTimeout(() => location.reload(), 3000);
+                        }
                     }
                 }
             } catch (error) {
@@ -702,11 +1131,116 @@
             }
         }
         
-        function showError(message) {
+        function handleGroupBookingStatus(data) {
+            const status = data.status;
+            
+            if (status === 'Fully Accepted' || status === 'En Route' || status === 'Completed') {
+                // All tuktuks assigned, show group driver info
+                showGroupDriverInfo(data);
+                return;
+            } else if (status === 'Partially Accepted') {
+                // Some tuktuks assigned, show progress
+                const acceptedCount = data.ride_requests.filter(r => 
+                    r.status === 'Accepted' || r.status === 'En Route'
+                ).length;
+                
+                const waitingSection = document.querySelector('#waiting-section .status-pending p');
+                if (waitingSection) {
+                    waitingSection.textContent = `Found ${acceptedCount} of ${data.tuktuks_required} tuktuks...`;
+                }
+                
+                setTimeout(pollRideStatus, 3000);
+            } else if (status === 'Pending') {
+                setTimeout(pollRideStatus, 3000);
+            } else if (status === 'Cancelled') {
+                showError('Group booking cancelled. Please try again.');
+                setTimeout(() => location.reload(), 3000);
+            }
+        }
+        
+        function showGroupDriverInfo(data) {
+            document.getElementById('waiting-section').classList.add('hidden');
+            document.getElementById('accepted-section').classList.remove('hidden');
+            
+            // Show info for the first driver (primary contact)
+            const firstRide = data.ride_requests.find(r => r.driver_name);
+            
+            if (firstRide) {
+                document.getElementById('driver-name').textContent = firstRide.driver_name || 'Driver';
+                document.getElementById('vehicle-id').textContent = firstRide.vehicle_id || 'N/A';
+                document.getElementById('driver-phone').textContent = firstRide.driver_phone || 'N/A';
+                currentDriverPhone = firstRide.driver_phone;
+                
+                if (firstRide.driver_photo) {
+                    document.getElementById('driver-photo').src = `${API_BASE_URL}${firstRide.driver_photo}`;
+                } else {
+                    document.getElementById('driver-photo').src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(firstRide.driver_name || 'Driver') + '&background=ffe151&color=333';
+                }
+            }
+            
+            // Add additional info about multiple tuktuks
+            const driverDetailsDiv = document.querySelector('.driver-details');
+            if (driverDetailsDiv && data.tuktuks_required > 1) {
+                let groupInfo = `<div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">`;
+                groupInfo += `<strong>Group Booking:</strong> ${data.tuktuks_required} Tuktuks<br>`;
+                
+                data.ride_requests.forEach(ride => {
+                    if (ride.driver_name) {
+                        groupInfo += `<div style="margin-top: 5px;">Tuktuk ${ride.tuktuk_number}: ${ride.driver_name} (${ride.vehicle_id || 'N/A'})</div>`;
+                    }
+                });
+                
+                groupInfo += `</div>`;
+                
+                // Insert after driver-details
+                if (!document.getElementById('group-info-added')) {
+                    const groupInfoEl = document.createElement('div');
+                    groupInfoEl.id = 'group-info-added';
+                    groupInfoEl.innerHTML = groupInfo;
+                    driverDetailsDiv.parentNode.insertBefore(groupInfoEl, driverDetailsDiv.nextSibling);
+                }
+            }
+        }
+        
+        function showError(message, allowHtml = false) {
             const errorDiv = document.getElementById('error-message');
-            errorDiv.textContent = message;
+            if (allowHtml) {
+                errorDiv.innerHTML = message;
+            } else {
+                errorDiv.textContent = message;
+            }
             errorDiv.classList.remove('hidden');
+            // Scroll error message into view smoothly
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+        
+        // Center map to service area
+        function centerMapToServiceArea() {
+            if (!hailingSettings.service_area_coordinates || !map) {
+                // Fallback to default Diani Beach center if no service area defined
+                map.setView([-4.2833, 39.5667], 13);
+                return;
+            }
+            
+            try {
+                const coords = JSON.parse(hailingSettings.service_area_coordinates);
+                if (coords && coords.length > 0 && coords[0].length > 0) {
+                    // Convert [lng, lat] to [lat, lng] for Leaflet
+                    const leafletCoords = coords[0].map(point => [point[1], point[0]]);
+                    
+                    // Calculate bounds and fit map to service area
+                    const bounds = L.latLngBounds(leafletCoords);
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                } else {
+                    // Fallback to default center
+                    map.setView([-4.2833, 39.5667], 13);
+                }
+            } catch (error) {
+                console.error('Error centering map to service area:', error);
+                // Fallback to default center
+                map.setView([-4.2833, 39.5667], 13);
+            }
         }
         
         // Setup input event listeners with debouncing
@@ -790,10 +1324,62 @@
             });
         }
         
+        // Mobile scroll button functionality
+        function setupMobileScrollButton() {
+            const scrollBtn = document.getElementById('mobile-scroll-btn');
+            const mapPanel = document.querySelector('.map-panel');
+            
+            if (!scrollBtn || !mapPanel) return;
+            
+            let isScrolling = false;
+            
+            // Handle touch start (mobile)
+            scrollBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                isScrolling = true;
+                scrollBtn.classList.add('scrolling');
+                mapPanel.classList.add('scroll-mode');
+            });
+            
+            // Handle touch end (mobile)
+            scrollBtn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                isScrolling = false;
+                scrollBtn.classList.remove('scrolling');
+                mapPanel.classList.remove('scroll-mode');
+            });
+            
+            // Handle mouse down (for testing on desktop)
+            scrollBtn.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                isScrolling = true;
+                scrollBtn.classList.add('scrolling');
+                mapPanel.classList.add('scroll-mode');
+            });
+            
+            // Handle mouse up (for testing on desktop)
+            document.addEventListener('mouseup', function() {
+                if (isScrolling) {
+                    isScrolling = false;
+                    scrollBtn.classList.remove('scrolling');
+                    mapPanel.classList.remove('scroll-mode');
+                }
+            });
+            
+            // Handle case where touch moves outside button
+            scrollBtn.addEventListener('touchcancel', function() {
+                isScrolling = false;
+                scrollBtn.classList.remove('scrolling');
+                mapPanel.classList.remove('scroll-mode');
+            });
+        }
+        
         // Initialize on load
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
             setupInputListeners();
+            setupAutocomplete();
+            setupMobileScrollButton();
         });
     </script>
 
@@ -815,6 +1401,11 @@
 <!-- Back to Top Button -->
 <button class="back-to-top" title="Back to top">
     <i class="fa fa-chevron-up"></i>
+</button>
+
+<!-- Mobile Scroll Control Button -->
+<button id="mobile-scroll-btn" class="mobile-scroll-button" title="Hold to scroll page">
+    <i class="fa fa-hand-paper-o"></i>
 </button>
 
 </body>

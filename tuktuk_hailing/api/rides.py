@@ -7,7 +7,7 @@ import math
 
 @frappe.whitelist(allow_guest=True)
 def create_ride_request_public(customer_phone, pickup_address, pickup_lat, pickup_lng,
-                               destination_address, dest_lat, dest_lng, customer_name=None, passenger_count=1):
+                               destination_address, destination_lat, destination_lng, customer_name=None, number_of_passengers=1):
     """
     Public endpoint for customers to create ride requests
     Called from the booking page
@@ -15,8 +15,8 @@ def create_ride_request_public(customer_phone, pickup_address, pickup_lat, picku
     """
     
     try:
-        passenger_count = int(passenger_count) if passenger_count else 1
-        
+        passenger_count = int(number_of_passengers) if number_of_passengers else 1
+
         # Check if multiple tuktuks needed (more than 3 passengers)
         if passenger_count > 3:
             # Create group booking with multiple linked ride requests
@@ -28,10 +28,10 @@ def create_ride_request_public(customer_phone, pickup_address, pickup_lat, picku
                 pickup_lat=pickup_lat,
                 pickup_lng=pickup_lng,
                 destination_address=destination_address,
-                dest_lat=dest_lat,
-                dest_lng=dest_lng
+                dest_lat=destination_lat,
+                dest_lng=destination_lng
             )
-            
+
             return {
                 "success": True,
                 "request_id": group_booking_id,
@@ -42,15 +42,15 @@ def create_ride_request_public(customer_phone, pickup_address, pickup_lat, picku
         else:
             # Single tuktuk booking
             from tuktuk_hailing.tuktuk_hailing.doctype.ride_request.ride_request import create_ride_request
-            
+
             request_id = create_ride_request(
                 customer_phone=customer_phone,
                 pickup_address=pickup_address,
                 pickup_lat=pickup_lat,
                 pickup_lng=pickup_lng,
                 destination_address=destination_address,
-                dest_lat=dest_lat,
-                dest_lng=dest_lng,
+                dest_lat=destination_lat,
+                dest_lng=destination_lng,
                 customer_name=customer_name,
                 passenger_count=passenger_count
             )
@@ -144,12 +144,21 @@ def create_group_booking(customer_phone, customer_name, passenger_count,
     return group_booking.name
 
 @frappe.whitelist()
-def get_pending_requests_for_driver(driver_id):
+def get_pending_requests_for_driver(driver_id=None):
     """
     Get all pending ride requests visible to this driver
     Called by driver dashboard to show available requests
+
+    driver_id: Optional - if not provided, uses current authenticated user
     """
-    
+
+    # If driver_id not provided, get from the authenticated user (mobile app context)
+    if not driver_id:
+        driver_id = frappe.db.get_value("TukTuk Driver", {"user_account": frappe.session.user}, "name")
+
+        if not driver_id:
+            frappe.throw("No driver found for current user")
+
     # Get driver's current location
     from tuktuk_hailing.api.location import get_driver_location
     driver_location = get_driver_location(driver_id)
@@ -198,33 +207,56 @@ def get_pending_requests_for_driver(driver_id):
     return requests
 
 @frappe.whitelist()
-def accept_ride_request_by_driver(request_id, driver_id):
+def accept_ride_request_by_driver(request_id, driver_id=None):
     """
     Driver accepts a ride request
+
+    driver_id: Optional - if not provided, uses current authenticated user
     """
-    from tuktuk_hailing.tuktuk_hailing.doctype.ride_request.ride_request import accept_ride_request
-    
+
     try:
+        # If driver_id not provided, get from the authenticated user (mobile app context)
+        if not driver_id:
+            driver_id = frappe.db.get_value("TukTuk Driver", {"user_account": frappe.session.user}, "name")
+
+            if not driver_id:
+                return {
+                    "success": False,
+                    "error": "No driver found for current user"
+                }
+
+        from tuktuk_hailing.tuktuk_hailing.doctype.ride_request.ride_request import accept_ride_request
+
         result = accept_ride_request(request_id, driver_id)
-        
+
         # Notify customer that driver accepted
         notify_customer_driver_accepted(request_id)
-        
+
         return result
-    
+
     except Exception as e:
+        frappe.log_error(f"Accept ride error: {str(e)}", "Accept Ride Error")
         return {
             "success": False,
             "error": str(e)
         }
 
 @frappe.whitelist()
-def get_my_active_ride(driver_id):
+def get_my_active_ride(driver_id=None):
     """
     Get driver's currently active ride (if any)
     Returns the Accepted or En Route ride request
+
+    driver_id: Optional - if not provided, uses current authenticated user
     """
-    
+
+    # If driver_id not provided, get from the authenticated user (mobile app context)
+    if not driver_id:
+        driver_id = frappe.db.get_value("TukTuk Driver", {"user_account": frappe.session.user}, "name")
+
+        if not driver_id:
+            frappe.throw("No driver found for current user")
+
     active_ride = frappe.db.get_value("Ride Request",
         filters={
             "accepted_by_driver": driver_id,
@@ -390,10 +422,10 @@ def get_group_booking_status(group_booking_id, customer_phone):
                 try:
                     driver = frappe.get_doc("TukTuk Driver", ride_request.accepted_by_driver)
                     vehicle = frappe.get_doc("TukTuk Vehicle", ride_request.accepted_by_vehicle)
-                    
+
                     ride_info.update({
                         "driver_name": driver.driver_name,
-                        "driver_phone": driver.phone_number,
+                        "driver_phone": driver.mpesa_number,
                         "driver_photo": driver.photo,
                         "vehicle_id": vehicle.tuktuk_id
                     })
@@ -410,16 +442,23 @@ def get_ride_status(request_id, customer_phone):
     Get current status of a ride request
     Customer can check their ride status
     """
-    
+
     ride_request = frappe.get_doc("Ride Request", request_id)
-    
+
     # Verify customer
     if ride_request.customer_phone != customer_phone:
         return {
             "success": False,
             "error": "Unauthorized"
         }
-    
+
+    # Check if request has expired
+    from frappe.utils import get_datetime
+    if ride_request.status == "Pending" and get_datetime(ride_request.expires_at) < get_datetime(now()):
+        ride_request.status = "Expired"
+        ride_request.save(ignore_permissions=True)
+        frappe.db.commit()
+
     response = {
         "success": True,
         "request_id": request_id,
@@ -433,10 +472,10 @@ def get_ride_status(request_id, customer_phone):
     if ride_request.status in ["Accepted", "En Route", "Completed"] and ride_request.accepted_by_driver:
         driver = frappe.get_doc("TukTuk Driver", ride_request.accepted_by_driver)
         vehicle = frappe.get_doc("TukTuk Vehicle", ride_request.accepted_by_vehicle)
-        
+
         response.update({
             "driver_name": driver.driver_name,
-            "driver_phone": driver.phone_number,
+            "driver_phone": driver.mpesa_number,
             "driver_photo": driver.photo,
             "vehicle_id": vehicle.tuktuk_id,
             "accepted_at": ride_request.accepted_at
@@ -523,7 +562,59 @@ def send_rating_request(trip_id):
     """
     # Generate rating link
     rating_url = f"{frappe.utils.get_url()}/rate-ride?trip={trip_id}"
-    
+
     # TODO: Implement WhatsApp/SMS sending
     frappe.log_error(f"Rating request for trip {trip_id}: {rating_url}", "Rating Request")
     pass
+
+@frappe.whitelist()
+def test_websocket_notification():
+    """
+    Test endpoint to manually trigger a WebSocket notification to all available drivers
+    Used for debugging WebSocket connectivity
+    """
+    frappe.logger().info("🧪 TEST: test_websocket_notification called")
+
+    # Get all available drivers
+    available_drivers = frappe.get_all("TukTuk Driver",
+        filters={"hailing_status": "Available"},
+        fields=["name", "user_account", "driver_name"]
+    )
+
+    frappe.logger().info(f"🧪 TEST: Found {len(available_drivers)} available drivers")
+
+    test_message = {
+        "test": True,
+        "message": "This is a test WebSocket notification",
+        "timestamp": str(frappe.utils.now()),
+        "request_id": "TEST-001"
+    }
+
+    results = []
+    for driver in available_drivers:
+        if driver.user_account:
+            frappe.logger().info(f"🧪 TEST: Sending to driver {driver.driver_name} (user: {driver.user_account})")
+            frappe.publish_realtime(
+                event="new_ride_request",
+                message=test_message,
+                user=driver.user_account
+            )
+            results.append({
+                "driver": driver.driver_name,
+                "user": driver.user_account,
+                "sent": True
+            })
+        else:
+            frappe.logger().info(f"🧪 TEST: Driver {driver.driver_name} has no user_account")
+            results.append({
+                "driver": driver.driver_name,
+                "user": None,
+                "sent": False
+            })
+
+    return {
+        "success": True,
+        "drivers_notified": len([r for r in results if r["sent"]]),
+        "total_available": len(available_drivers),
+        "results": results
+    }

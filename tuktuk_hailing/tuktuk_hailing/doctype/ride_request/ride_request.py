@@ -148,47 +148,73 @@ def create_ride_request(customer_phone, pickup_address, pickup_lat, pickup_lng,
 @frappe.whitelist()
 def accept_ride_request(request_id, driver_id):
     """Driver accepts a ride request"""
-    
-    # Get the ride request
-    ride_request = frappe.get_doc("Ride Request", request_id)
-    
-    # Check if request is still pending
-    if ride_request.status != "Pending":
-        frappe.throw("This ride request is no longer available")
-    
-    # Check if request has expired
-    if get_datetime(ride_request.expires_at) < get_datetime(now()):
-        ride_request.status = "Expired"
+
+    try:
+        # Get the ride request
+        ride_request = frappe.get_doc("Ride Request", request_id)
+
+        # Check if request is still pending
+        if ride_request.status != "Pending":
+            return {
+                "success": False,
+                "error": "This ride request is no longer available"
+            }
+
+        # Check if request has expired
+        if get_datetime(ride_request.expires_at) < get_datetime(now()):
+            ride_request.status = "Expired"
+            ride_request.save(ignore_permissions=True)
+            frappe.db.commit()
+            return {
+                "success": False,
+                "error": "This ride request has expired"
+            }
+
+        # Get driver and vehicle
+        driver = frappe.get_doc("TukTuk Driver", driver_id)
+
+        if not driver.assigned_tuktuk:
+            return {
+                "success": False,
+                "error": "You do not have an assigned tuktuk. Please contact support."
+            }
+
+        # Accept the request
+        ride_request.status = "Accepted"
+        ride_request.accepted_by_driver = driver_id
+        ride_request.accepted_by_vehicle = driver.assigned_tuktuk
+        ride_request.accepted_at = now()
         ride_request.save(ignore_permissions=True)
-        frappe.throw("This ride request has expired")
-    
-    # Get driver and vehicle
-    driver = frappe.get_doc("TukTuk Driver", driver_id)
-    
-    if not driver.assigned_tuktuk:
-        frappe.throw("You do not have an assigned tuktuk")
-    
-    # Accept the request
-    ride_request.status = "Accepted"
-    ride_request.accepted_by_driver = driver_id
-    ride_request.accepted_by_vehicle = driver.assigned_tuktuk
-    ride_request.accepted_at = now()
-    ride_request.save(ignore_permissions=True)
-    
-    # Update group booking status if this is part of a group
-    if ride_request.group_booking:
-        update_group_booking_status(ride_request.group_booking, request_id)
-    
-    frappe.db.commit()
-    
-    return {
-        "success": True,
-        "customer_phone": ride_request.customer_phone,
-        "customer_name": ride_request.customer_name,
-        "pickup_address": ride_request.pickup_address,
-        "destination_address": ride_request.destination_address,
-        "estimated_fare": ride_request.estimated_fare
-    }
+
+        # Update group booking status if this is part of a group
+        if ride_request.group_booking:
+            update_group_booking_status(ride_request.group_booking, request_id)
+
+        frappe.db.commit()
+
+        return {
+            "success": True,
+            "name": ride_request.name,
+            "customer_phone": ride_request.customer_phone,
+            "customer_name": ride_request.customer_name,
+            "pickup_address": ride_request.pickup_address,
+            "pickup_latitude": ride_request.pickup_latitude,
+            "pickup_longitude": ride_request.pickup_longitude,
+            "destination_address": ride_request.destination_address,
+            "destination_latitude": ride_request.destination_latitude,
+            "destination_longitude": ride_request.destination_longitude,
+            "estimated_fare": ride_request.estimated_fare,
+            "estimated_distance_km": ride_request.estimated_distance_km,
+            "accepted_at": str(ride_request.accepted_at),
+            "status": ride_request.status
+        }
+
+    except Exception as e:
+        frappe.log_error(f"Error accepting ride request: {str(e)}", "Accept Ride Error")
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 @frappe.whitelist()
 def mark_en_route(request_id):
@@ -306,13 +332,48 @@ def update_group_booking_status(group_booking_id, ride_request_id):
 
 def notify_drivers(request_id):
     """Notify available drivers about new ride request"""
-    # This will be implemented with Socket.IO or polling
-    # For now, just log it
-    frappe.publish_realtime(
-        event="new_ride_request",
-        message={"request_id": request_id},
-        user="all_drivers"
+    # Get all available drivers (online and available for rides)
+    available_drivers = frappe.get_all("TukTuk Driver",
+        filters={
+            "hailing_status": "Available"
+        },
+        fields=["name", "user_account", "driver_name"]
     )
+
+    frappe.logger().info(f"🔔 notify_drivers called for request {request_id}")
+    frappe.logger().info(f"   Found {len(available_drivers)} available drivers")
+
+    # Get ride request details for the notification
+    ride_request = frappe.get_doc("Ride Request", request_id)
+
+    notification_data = {
+        "request_id": request_id,
+        "pickup_address": ride_request.pickup_address,
+        "destination_address": ride_request.destination_address,
+        "pickup_latitude": ride_request.pickup_latitude,
+        "pickup_longitude": ride_request.pickup_longitude,
+        "destination_latitude": ride_request.destination_latitude,
+        "destination_longitude": ride_request.destination_longitude,
+        "estimated_fare": ride_request.estimated_fare,
+        "estimated_distance_km": ride_request.estimated_distance_km,
+        "passenger_count": ride_request.passenger_count,
+        "requested_at": str(ride_request.requested_at),
+        "expires_at": str(ride_request.expires_at)
+    }
+
+    # Send real-time notification to each available driver
+    for driver in available_drivers:
+        if driver.user_account:
+            frappe.logger().info(f"   📤 Sending event to driver {driver.driver_name} (user: {driver.user_account})")
+            frappe.publish_realtime(
+                event="new_ride_request",
+                message=notification_data,
+                user=driver.user_account
+            )
+        else:
+            frappe.logger().info(f"   ⚠️ Driver {driver.driver_name} has no user_account, skipping")
+
+    frappe.logger().info(f"✅ Notified {len(available_drivers)} drivers about ride request {request_id}")
 
 def expire_old_requests():
     """Scheduled task to expire old pending requests"""

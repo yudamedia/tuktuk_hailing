@@ -6,12 +6,21 @@ from frappe.utils import now, get_datetime, add_to_date
 from datetime import datetime, timedelta
 
 @frappe.whitelist()
-def update_driver_location(driver_id, latitude, longitude, accuracy=None, heading=None, speed=None, hailing_status="Available"):
+def update_driver_location(latitude, longitude, driver_id=None, accuracy=None, heading=None, speed=None, hailing_status="Available"):
     """
     Update driver's current location
     Called every N seconds by driver's phone
+
+    driver_id: Optional - if not provided, uses current authenticated user
     """
-    
+
+    # If driver_id not provided, get from the authenticated user (mobile app context)
+    if not driver_id:
+        driver_id = frappe.db.get_value("TukTuk Driver", {"user_account": frappe.session.user}, "name")
+
+        if not driver_id:
+            frappe.throw("No driver found for current user")
+
     # Convert numeric parameters to proper types (they come as strings from API)
     latitude = float(latitude)
     longitude = float(longitude)
@@ -157,13 +166,22 @@ def get_available_drivers(customer_lat=None, customer_lng=None, max_distance_km=
     return drivers
 
 @frappe.whitelist()
-def set_driver_availability(driver_id, available=True):
+def set_driver_availability(driver_id=None, available=True):
     """
     Toggle driver's availability for hailing
     available=True: Set to "Available"
     available=False: Set to "Offline"
+
+    driver_id: Optional - if not provided, uses current authenticated user
     """
-    
+
+    # If driver_id not provided, get from the authenticated user (mobile app context)
+    if not driver_id:
+        driver_id = frappe.db.get_value("TukTuk Driver", {"user_account": frappe.session.user}, "name")
+
+        if not driver_id:
+            frappe.throw("No driver found for current user")
+
     # Convert available to boolean (it comes as string/int from API)
     if isinstance(available, str):
         available = available.lower() in ['true', '1', 'yes']

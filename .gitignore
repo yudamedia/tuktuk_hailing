@@ -1,0 +1,12 @@
+# Ignore all .md files
+*.md
+
+# But keep README.md
+!README.md
+
+# Ignore external website folder
+for_external_website/
+
+# Ignore all CSV files
+*.csv
+
